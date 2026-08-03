@@ -1,0 +1,836 @@
+/* ==========================================================
+   ANDINOMICS — Smart Financial Dashboard
+   Theme   : Dark Green Premium + Orange
+   Developer: Andi Muhammad Hakim
+   ========================================================== */
+
+/* ==========================================================
+   1. ROOT / DESIGN TOKENS
+   ========================================================== */
+:root {
+    /* Colors */
+    --bg: #0f2418;
+    --card: #183326;
+    --card-hover: #1f3f2e;
+    --border: #28503a;
+
+    --orange: #ff7a00;
+    --orange-hover: #ff8c1f;
+    --blue: #3478f6;
+    --success: #2ecc71;
+    --danger: #ff5d5d;
+
+    --text: #f8fafc;
+    --text-muted: #9eb3a6;
+    --surface-2: #214131;
+    --surface-3: #234734;
+
+    /* Typography */
+    --font-base: 'Plus Jakarta Sans', 'Poppins', system-ui, sans-serif;
+    --fs-xs: 0.8125rem;
+    --fs-sm: 0.9375rem;
+    --fs-base: 1rem;
+    --fs-lg: 1.125rem;
+    --fs-xl: 1.5rem;
+    --fs-2xl: 2rem;
+    --fs-3xl: 2.625rem;
+
+    /* Spacing scale */
+    --space-1: 4px;
+    --space-2: 8px;
+    --space-3: 12px;
+    --space-4: 16px;
+    --space-5: 20px;
+    --space-6: 24px;
+    --space-7: 32px;
+    --space-8: 40px;
+    --space-9: 56px;
+
+    /* Radius */
+    --radius-sm: 10px;
+    --radius-md: 14px;
+    --radius-lg: 18px;
+    --radius-xl: 22px;
+
+    /* Elevation */
+    --shadow-sm: 0 4px 12px rgba(0, 0, 0, 0.22);
+    --shadow-md: 0 10px 25px rgba(0, 0, 0, 0.30);
+    --shadow-lg: 0 20px 45px rgba(0, 0, 0, 0.35);
+
+    /* Motion */
+    --transition-fast: 0.18s ease;
+    --transition-base: 0.3s ease;
+
+    /* Layout */
+    --content-width: min(1320px, 92%);
+    --header-height: 84px;
+}
+
+/* ==========================================================
+   2. RESET
+   ========================================================== */
+*,
+*::before,
+*::after {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+html {
+    scroll-behavior: smooth;
+}
+
+body {
+    background: var(--bg);
+    color: var(--text-muted);
+    font-family: var(--font-base);
+    min-height: 100vh;
+    line-height: 1.5;
+}
+
+img {
+    max-width: 100%;
+    display: block;
+}
+
+button,
+input,
+select {
+    font-family: inherit;
+    color: inherit;
+}
+
+ul {
+    list-style: none;
+}
+
+a {
+    color: inherit;
+}
+
+/* Respect reduced-motion preference */
+@media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+        scroll-behavior: auto !important;
+    }
+}
+
+/* Utility */
+.visually-hidden {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+}
+
+.skip-link {
+    position: absolute;
+    top: -100%;
+    left: var(--space-4);
+    background: var(--orange);
+    color: white;
+    padding: var(--space-3) var(--space-5);
+    border-radius: var(--radius-sm);
+    z-index: 1000;
+    font-weight: 600;
+    transition: top var(--transition-fast);
+}
+
+.skip-link:focus {
+    top: var(--space-3);
+}
+
+/* Consistent, visible focus state across all interactive elements */
+a:focus-visible,
+button:focus-visible,
+input:focus-visible,
+select:focus-visible,
+[tabindex]:focus-visible {
+    outline: 2px solid var(--orange);
+    outline-offset: 2px;
+}
+
+/* ==========================================================
+   3. TYPOGRAPHY
+   ========================================================== */
+h1, h2, h3 {
+    color: var(--text);
+    font-weight: 700;
+    line-height: 1.25;
+}
+
+h1 { font-size: var(--fs-xl); letter-spacing: 0.5px; }
+h2 { font-size: var(--fs-2xl); }
+h3 { font-size: var(--fs-sm); font-weight: 500; color: var(--text-muted); }
+
+p { font-size: var(--fs-base); }
+
+/* ==========================================================
+   4. LAYOUT
+   ========================================================== */
+main {
+    width: var(--content-width);
+    margin: 0 auto;
+    padding: var(--space-8) 0 var(--space-9);
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-8);
+}
+
+/* ==========================================================
+   5. HEADER
+   ========================================================== */
+.topbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: var(--space-5);
+    width: 100%;
+    min-height: var(--header-height);
+    padding: var(--space-4) 7%;
+    background: rgba(23, 48, 34, 0.85);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border-bottom: 1px solid var(--border);
+    position: sticky;
+    top: 0;
+    z-index: 100;
+}
+
+.brand {
+    display: flex;
+    align-items: center;
+    gap: var(--space-4);
+}
+
+.brand-mark {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 52px;
+    height: 52px;
+    border-radius: var(--radius-md);
+    background: linear-gradient(145deg, var(--orange), #ff9a40);
+    color: var(--bg);
+    font-size: var(--fs-lg);
+    box-shadow: var(--shadow-sm);
+    flex-shrink: 0;
+}
+
+.brand-text h1 {
+    font-size: var(--fs-xl);
+    letter-spacing: 1px;
+}
+
+.brand-text p {
+    color: var(--text-muted);
+    font-size: var(--fs-xs);
+}
+
+.header-actions {
+    display: flex;
+    align-items: center;
+    gap: var(--space-5);
+    flex-wrap: wrap;
+}
+
+.date-box {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    color: var(--text-muted);
+    font-size: var(--fs-sm);
+}
+
+.date-box i { color: var(--orange); }
+
+.profile {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+    padding: var(--space-2) var(--space-4);
+    background: var(--surface-2);
+    border-radius: var(--radius-md);
+    color: var(--text);
+    font-weight: 500;
+    font-size: var(--fs-sm);
+}
+
+.profile i {
+    font-size: var(--fs-xl);
+    color: var(--orange);
+}
+
+/* ==========================================================
+   6. HERO
+   ========================================================== */
+.hero {
+    text-align: center;
+}
+
+.hero h2 {
+    font-size: var(--fs-3xl);
+    margin-bottom: var(--space-3);
+}
+
+.hero > p {
+    color: var(--text-muted);
+    font-size: var(--fs-lg);
+    max-width: 640px;
+    margin: 0 auto;
+}
+
+.mini-info {
+    display: flex;
+    justify-content: center;
+    gap: var(--space-5);
+    margin-top: var(--space-7);
+    flex-wrap: wrap;
+}
+
+.mini-info-item {
+    flex: 1;
+    min-width: 240px;
+    max-width: 380px;
+    text-align: left;
+    background: var(--card);
+    padding: var(--space-5);
+    border-radius: var(--radius-md);
+    border: 1px solid var(--border);
+}
+
+.mini-info-item strong {
+    display: block;
+    margin-bottom: var(--space-2);
+    color: var(--text);
+}
+
+.status-dot {
+    display: inline-block;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--success);
+    margin-right: var(--space-2);
+    box-shadow: 0 0 0 3px rgba(46, 204, 113, 0.2);
+}
+
+/* ==========================================================
+   7. DASHBOARD / CARDS
+   ========================================================== */
+.dashboard {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: var(--space-5);
+}
+
+.card {
+    position: relative;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: var(--space-6);
+    box-shadow: var(--shadow-md);
+    transition: transform var(--transition-base), background var(--transition-base);
+    overflow: hidden;
+}
+
+.card::before {
+    content: '';
+    position: absolute;
+    inset: 0 0 auto 0;
+    height: 3px;
+    background: var(--accent, var(--orange));
+}
+
+.card-saldo { --accent: var(--orange); }
+.card-income { --accent: var(--success); }
+.card-expense { --accent: var(--danger); }
+.card-count { --accent: var(--blue); }
+
+.card:hover {
+    transform: translateY(-6px);
+    background: var(--card-hover);
+}
+
+.card .icon {
+    width: 52px;
+    height: 52px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    border-radius: var(--radius-sm);
+    background: color-mix(in srgb, var(--accent, var(--orange)) 16%, transparent);
+    color: var(--accent, var(--orange));
+    font-size: var(--fs-lg);
+    margin-bottom: var(--space-5);
+}
+
+.card h3 {
+    margin-bottom: var(--space-2);
+}
+
+.card-value {
+    color: var(--text);
+    font-size: var(--fs-2xl);
+    font-weight: 700;
+}
+
+/* ==========================================================
+   QUICK MENU
+   ========================================================== */
+.quick-menu {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: var(--space-4);
+}
+
+.quick-menu button {
+    height: 60px;
+    font-size: var(--fs-sm);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: var(--space-3);
+    background: var(--card);
+    border: 1px solid var(--border);
+    color: var(--text);
+}
+
+.quick-menu button:hover {
+    background: var(--surface-2);
+    border-color: var(--orange);
+}
+
+.quick-menu button i {
+    color: var(--orange);
+}
+
+/* ==========================================================
+   8. BUTTONS (global)
+   ========================================================== */
+button {
+    border: none;
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    font-weight: 600;
+    transition: background var(--transition-fast), transform var(--transition-fast);
+}
+
+.submit-btn,
+.cancel-btn {
+    height: 56px;
+    padding: 0 var(--space-6);
+    font-size: var(--fs-base);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--space-3);
+}
+
+.submit-btn {
+    background: var(--orange);
+    color: white;
+    flex: 1;
+}
+
+.submit-btn:hover {
+    background: var(--orange-hover);
+}
+
+.cancel-btn {
+    background: transparent;
+    color: var(--text-muted);
+    border: 1px solid var(--border);
+}
+
+.cancel-btn:hover {
+    border-color: var(--danger);
+    color: var(--danger);
+}
+
+.form-actions {
+    display: flex;
+    gap: var(--space-4);
+    margin-top: var(--space-3);
+}
+
+/* ==========================================================
+   9. CHART
+   ========================================================== */
+.chart-box {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: var(--space-7);
+    box-shadow: var(--shadow-md);
+}
+
+.chart-box-header {
+    margin-bottom: var(--space-6);
+}
+
+.chart-box-header h2 {
+    margin-bottom: var(--space-1);
+}
+
+.chart-subtitle {
+    color: var(--text-muted);
+    font-size: var(--fs-sm);
+}
+
+.chart-canvas-wrap {
+    position: relative;
+    height: 360px;
+}
+
+.chart-canvas-wrap canvas {
+    width: 100% !important;
+    height: 100% !important;
+}
+
+/* ==========================================================
+   10. FORM
+   ========================================================== */
+.form-card {
+    background: var(--card);
+    padding: var(--space-7);
+    border-radius: var(--radius-xl);
+    border: 1px solid var(--border);
+    box-shadow: var(--shadow-md);
+}
+
+.form-card h2 {
+    margin-bottom: var(--space-6);
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+}
+
+.form-card h2 i {
+    color: var(--orange);
+}
+
+.form-group {
+    margin-bottom: var(--space-5);
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: var(--space-2);
+    font-weight: 600;
+    font-size: var(--fs-sm);
+    color: var(--text);
+}
+
+.label-optional {
+    font-weight: 400;
+    color: var(--text-muted);
+}
+
+.grid-2 {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: var(--space-4);
+}
+
+input,
+select {
+    width: 100%;
+    padding: var(--space-4);
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--border);
+    background: var(--surface-2);
+    color: var(--text);
+    font-size: var(--fs-sm);
+}
+
+input::placeholder {
+    color: var(--text-muted);
+}
+
+input:focus,
+select:focus {
+    outline: none;
+    border-color: var(--orange);
+}
+
+input[aria-invalid="true"],
+select[aria-invalid="true"] {
+    border-color: var(--danger);
+}
+
+.form-error {
+    display: block;
+    min-height: 1.1em;
+    margin-top: var(--space-2);
+    color: var(--danger);
+    font-size: var(--fs-xs);
+}
+
+/* Native file input button */
+input[type="file"] {
+    padding: var(--space-3);
+    cursor: pointer;
+}
+
+/* ==========================================================
+   11. TABLE / HISTORY
+   ========================================================== */
+.history-card {
+    background: var(--card);
+    padding: var(--space-7);
+    border-radius: var(--radius-xl);
+    border: 1px solid var(--border);
+    box-shadow: var(--shadow-md);
+}
+
+.history-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: var(--space-6);
+    gap: var(--space-5);
+    flex-wrap: wrap;
+}
+
+.history-header h2 {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+}
+
+.history-header h2 i {
+    color: var(--orange);
+}
+
+.search-box {
+    position: relative;
+    width: 300px;
+    max-width: 100%;
+}
+
+.search-box i {
+    position: absolute;
+    left: var(--space-4);
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--text-muted);
+    pointer-events: none;
+}
+
+.search-box input {
+    padding-left: calc(var(--space-4) * 2 + 14px);
+}
+
+.table-responsive {
+    overflow-x: auto;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    min-width: 640px;
+}
+
+th {
+    background: var(--surface-3);
+    color: var(--text);
+    padding: var(--space-4);
+    text-align: left;
+    font-size: var(--fs-xs);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+th:first-child { border-radius: var(--radius-sm) 0 0 var(--radius-sm); }
+th:last-child { border-radius: 0 var(--radius-sm) var(--radius-sm) 0; }
+
+td {
+    padding: var(--space-4);
+    border-bottom: 1px solid var(--border);
+    font-size: var(--fs-sm);
+}
+
+tbody tr {
+    transition: background var(--transition-fast);
+}
+
+tbody tr:hover {
+    background: rgba(255, 255, 255, 0.03);
+}
+
+.empty-data {
+    text-align: center;
+    padding: var(--space-9) var(--space-5);
+    color: var(--text-muted);
+    font-size: var(--fs-lg);
+}
+
+.empty-data i {
+    font-size: 3.4rem;
+    color: var(--orange);
+    margin-bottom: var(--space-4);
+    display: block;
+}
+
+.badge {
+    display: inline-block;
+    padding: var(--space-1) var(--space-3);
+    border-radius: var(--radius-sm);
+    font-size: var(--fs-xs);
+    font-weight: 700;
+    color: var(--bg);
+}
+
+.badge-income { background: var(--success); }
+.badge-expense { background: var(--danger); color: white; }
+
+.amount-income { color: var(--success); font-weight: 600; }
+.amount-expense { color: var(--danger); font-weight: 600; }
+
+.action-group {
+    display: flex;
+    gap: var(--space-2);
+}
+
+.action-group button {
+    width: 36px;
+    height: 36px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--surface-2);
+    color: var(--text-muted);
+}
+
+.edit-btn:hover {
+    background: var(--blue);
+    color: white;
+}
+
+.delete-btn:hover {
+    background: var(--danger);
+    color: white;
+}
+
+/* ==========================================================
+   12. FOOTER
+   ========================================================== */
+footer {
+    padding: var(--space-7) var(--space-5);
+    text-align: center;
+    color: var(--text-muted);
+    border-top: 1px solid var(--border);
+    font-size: var(--fs-sm);
+}
+
+footer p + p {
+    margin-top: var(--space-2);
+}
+
+footer strong {
+    color: var(--orange);
+}
+
+/* ==========================================================
+   TOAST
+   ========================================================== */
+.toast {
+    position: fixed;
+    left: 50%;
+    bottom: var(--space-6);
+    transform: translate(-50%, 140%);
+    background: var(--surface-2);
+    color: var(--text);
+    border: 1px solid var(--border);
+    padding: var(--space-4) var(--space-6);
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-lg);
+    font-size: var(--fs-sm);
+    font-weight: 600;
+    transition: transform var(--transition-base);
+    z-index: 200;
+    max-width: 90vw;
+}
+
+.toast.is-visible {
+    transform: translate(-50%, 0);
+}
+
+.toast.is-error {
+    border-color: var(--danger);
+}
+
+.toast.is-success {
+    border-color: var(--success);
+}
+
+/* ==========================================================
+   SCROLLBAR
+   ========================================================== */
+::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+
+::-webkit-scrollbar-thumb {
+    background: var(--orange);
+    border-radius: 20px;
+}
+
+/* ==========================================================
+   13. RESPONSIVE
+   ========================================================== */
+@media (max-width: 960px) {
+    .hero h2 { font-size: var(--fs-2xl); }
+    .chart-canvas-wrap { height: 300px; }
+}
+
+@media (max-width: 720px) {
+    .topbar {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: var(--space-4);
+        padding: var(--space-4) 6%;
+    }
+
+    .header-actions {
+        width: 100%;
+        justify-content: space-between;
+    }
+
+    .grid-2 {
+        grid-template-columns: 1fr;
+    }
+
+    .history-header {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .search-box {
+        width: 100%;
+    }
+
+    .form-actions {
+        flex-direction: column;
+    }
+}
+
+@media (max-width: 480px) {
+    .hero h2 { font-size: var(--fs-xl); }
+    .card-value { font-size: var(--fs-xl); }
+    .brand-text p { display: none; }
+}
