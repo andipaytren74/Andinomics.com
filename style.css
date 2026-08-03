@@ -214,18 +214,16 @@ main {
     gap: var(--space-4);
 }
 
-.brand-mark {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 52px;
-    height: 52px;
-    border-radius: var(--radius-md);
-    background: linear-gradient(145deg, var(--orange), #ff9a40);
-    color: var(--bg);
-    font-size: var(--fs-lg);
-    box-shadow: var(--shadow-sm);
-    flex-shrink: 0;
+.brand-logo{
+
+    width:42px;
+
+    height:42px;
+
+    object-fit:contain;
+
+    display:block;
+
 }
 
 .brand-text h1 {
