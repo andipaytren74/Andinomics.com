@@ -1,0 +1,40 @@
+# CHANGELOG — Andinomics `script.js`
+
+## v3.0.0 — Core Engine Refactor
+
+### ✨ Fitur Baru
+- **Local Storage aktif** — `Storage.load() / save() / clear() / exists() / export() / import()`, dengan key `andinomics-transactions`.
+- **Auto Load** — seluruh transaksi otomatis dibaca dari Local Storage saat `init()`, sebelum render pertama.
+- **Auto Save** — setiap tambah, edit, dan hapus transaksi otomatis tersimpan lewat `persistAndRender()`.
+- **Dashboard Engine** — perhitungan saldo, pemasukan, pengeluaran, jumlah transaksi, kategori terbesar, dan transaksi terakhir dipisah ke modul `DashboardEngine.getSummary()`. Kategori terbesar dan transaksi terakhir dirender jika elemen HTML terkait tersedia (opsional, tidak memaksa perubahan markup saat ini).
+- **Export Engine (kontrak)** — `ExportEngine.toCSV/toPDF/toExcel` disiapkan sebagai stub agar fitur ekspor bisa ditambahkan tanpa refactor ulang struktur.
+
+### 🛠️ Refactor Arsitektur
+- Kode disusun ulang mengikuti urutan: **State → Config → DOM → Utils → Storage → Validation → Transaction Engine → Render Engine → Chart Engine → Dashboard Engine → Export Engine → Event Engine → Init**.
+- `transactions`, `editingId`, dan `cashflowChart` yang tadinya variabel lepas kini dienkapsulasi dalam objek `State`.
+- Konstanta hardcoded (`STORAGE_KEY`, durasi toast, batas panjang deskripsi, regex tanggal, warna fallback chart) dipindahkan ke objek `CONFIG` yang di-*freeze*.
+- Logika transaksi (create/update/delete/find/sort/filter) dipisah ke `TransactionEngine`, mengikuti Single Responsibility.
+- Logika render (`dashboard/table/chart/all`) dipisah ke `RenderEngine`; pembuatan baris tabel diekstrak ke `_buildRow()` agar tidak duplikat.
+- Logika chart dipisah ke `ChartEngine`; pembentukan dataset dan pengambilan warna tema diekstrak ke fungsi privat (`_buildDatasets`, `_getThemeColors`).
+- Duplikasi logika "simpan + render" pada handler tambah/edit/hapus disatukan menjadi `persistAndRender()` (DRY).
+
+### 🐞 Bug & Validasi Diperbaiki
+- Validasi nominal kini membedakan pesan untuk: kosong/bukan angka, negatif, dan nol (sebelumnya digabung jadi satu kondisi `<= 0`).
+- Validasi tanggal kini memeriksa format `YYYY-MM-DD` dan memastikan tanggal valid secara kalender, bukan hanya cek kosong.
+- `Validation.clear()` dan `handleQuickMenuClick` diberi optional chaining agar tidak error jika elemen opsional belum ada di HTML.
+
+### 🔒 Keamanan
+- Seluruh output ke tabel tetap melalui `Utils.escapeHtml()` untuk mencegah XSS (perilaku dipertahankan, diverifikasi ulang).
+- Data yang dibaca dari Local Storage divalidasi bentuknya (`_isValidRecord`) sebelum dipakai, untuk mencegah data rusak/asing merusak state aplikasi.
+- Semua akses `localStorage` (load/save/clear/exists) dibungkus `try...catch` dengan `console.error` informatif (mengantisipasi storage penuh, mode private browsing, dsb).
+
+### ⚡ Performa
+- Chart **tidak pernah dibuat ulang** — instance dibuat sekali di `State.chartInstance`, selanjutnya selalu memakai `.update()`.
+- Render tabel & dashboard tetap satu kali `innerHTML` per siklus render (tidak ada manipulasi DOM per-baris berulang).
+
+### 🧹 Self Review
+- Tidak ditemukan kode duplikat, dead code, atau variabel tak terpakai pada hasil akhir.
+- Tidak ada perubahan pada HTML maupun CSS.
+- Tidak ada penggantian framework; tetap vanilla JavaScript (ES2023, IIFE + `"use strict"`).
+- Seluruh fitur lama (tambah, edit, hapus, search, dashboard, chart, toast) tetap berjalan dengan perilaku yang sama.
+- Disintaks-cek dengan `node -c script.js` — lolos tanpa error.
