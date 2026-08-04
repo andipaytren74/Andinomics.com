@@ -1,5 +1,23 @@
 # CHANGELOG — Andinomics `script.js`
 
+## Sprint 3.2 — Modern Toast Notification
+
+### Target: Modern Toast Notification
+- **Sistem toast lama (satu elemen tunggal, muncul dari bawah-tengah) diganti total** dengan sistem toast modern berbasis `#toastContainer` yang mendukung beberapa notifikasi tampil bertumpuk secara bersamaan, tanpa saling menimpa.
+- **Modul baru `ToastEngine`** ditambahkan (section 13, sebelum Event Engine), mengikuti pola arsitektur `DialogEngine` dari Sprint 11 — setiap toast dibuat sebagai elemen mandiri (`show()`), dengan method dismiss internal (`_dismiss()`) yang dipakai baik oleh timer otomatis maupun tombol tutup manual.
+- **`showToast(message, variant)` dipertahankan sebagai wrapper tipis** yang mendelegasikan ke `ToastEngine.show()` — seluruh 10 titik pemanggilan `showToast()` di kode lama (form submit, delete, validasi, error storage, quick menu, init) tidak perlu diubah sama sekali.
+- **Animasi halus (fade + slide)**: toast masuk dengan fade-in + slide dari kanan (desktop) atau dari atas (mobile), dan keluar dengan animasi yang sama secara terbalik, memakai CSS `transition` (bukan `transform` mendadak) agar terasa modern dan tidak patah-patah.
+- **Warna varian mengikuti tema ANDINOMICS**, memakai CSS variable yang sudah ada di `:root` (tidak ada warna baru yang di-hardcode):
+  - Success → hijau (`--success`)
+  - Error → merah (`--danger`)
+  - Info → biru (`--blue`)
+  - Warning → oranye (`--orange`)
+- **Posisi**: toast container berada di **kanan atas** pada desktop/laptop/tablet, dan otomatis menyesuaikan menjadi **penuh lebar di atas** pada mobile (`max-width: 640px`) lewat media query baru — tidak mengubah breakpoint responsive yang sudah ada di file lain.
+- **Auto-dismiss 3 detik + progress bar**: `CONFIG.TOAST_DURATION_MS` diubah dari `3200` → `3000` (persis 3 detik). Setiap toast memiliki progress bar (`.toast-progress`) yang mengecil dari 100% → 0% via CSS `@keyframes`, dengan durasi animasi disinkronkan langsung dari `CONFIG.TOAST_DURATION_MS` lewat inline style dari JavaScript — bukan angka hardcode kedua.
+- **Dapat ditutup manual** lewat tombol close (ikon `×`) di setiap toast, selain hilang otomatis.
+- **Tidak ada perubahan** pada Local Storage, Dashboard, Chart, Search, `DialogEngine`/SweetAlert2 (Sprint 11), maupun arsitektur/urutan modul lain — hanya toast lama yang diganti, modul lain hanya digeser nomor urutnya di komentar header (Toast Engine disisipkan sebagai modul 13, Event Engine → 14, Init → 15).
+- **Self Review**: tidak ada console error / JavaScript error, seluruh fitur lama (tambah, edit, hapus + dialog SweetAlert2, search, dashboard, chart) tetap berjalan dan tetap memicu toast yang benar. Disintaks-cek dengan `node --check script.js` — lolos tanpa error. CSS diverifikasi seimbang (brace terbuka = tertutup).
+
 ## Sprint 11 — Professional Transaction Experience
 
 ### Part 11.1 — SweetAlert2 Integration
