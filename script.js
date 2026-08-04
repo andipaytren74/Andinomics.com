@@ -15,8 +15,9 @@
     9.  Chart Engine
     10. Dashboard Engine
     11. Export Engine (kontrak untuk PDF/Excel/CSV di masa depan)
-    12. Event Engine
-    13. Init
+    12. Dialog Engine (SweetAlert2 — Sprint 11)
+    13. Event Engine
+    14. Init
    ========================================================== */
 
 (function () {
@@ -629,7 +630,118 @@
     };
 
     /* ==========================================================
-       12. EVENT ENGINE
+       12. DIALOG ENGINE (SweetAlert2)
+       Sprint 11 — Part 11.1: Professional Transaction Experience.
+       Seluruh interaksi SweetAlert2 dibungkus di satu tempat agar
+       dialog lain (Sprint berikutnya) tinggal menambah method baru
+       di sini, tanpa menyentuh Event Engine atau modul lainnya.
+       ========================================================== */
+    const DialogEngine = {
+        /** Kelas kustom agar tampilan SweetAlert2 mengikuti identitas ANDINOMICS. */
+        _theme: Object.freeze({
+            popup: "andi-swal-popup",
+            title: "andi-swal-title",
+            htmlContainer: "andi-swal-content",
+            confirmButton: "andi-swal-btn andi-swal-btn--confirm",
+            cancelButton: "andi-swal-btn andi-swal-btn--cancel",
+        }),
+
+        _isAvailable() {
+            if (typeof Swal === "undefined") {
+                console.error("[DialogEngine] SweetAlert2 belum termuat.");
+                return false;
+            }
+            return true;
+        },
+
+        /** Baris detail transaksi (Keterangan/Kategori/Nominal/Tanggal) untuk dialog konfirmasi. */
+        _buildDetailRows(item) {
+            return [
+                ["Keterangan", item.description],
+                ["Kategori", item.category],
+                ["Nominal", Utils.formatRupiah(item.amount)],
+                ["Tanggal", Utils.formatDateShort(item.date)],
+            ]
+                .map(
+                    ([label, value]) => `
+                        <div class="andi-swal-row">
+                            <span class="andi-swal-row-label">${Utils.escapeHtml(label)}</span>
+                            <span class="andi-swal-row-value">${Utils.escapeHtml(value)}</span>
+                        </div>`
+                )
+                .join("");
+        },
+
+        /**
+         * Dialog konfirmasi hapus transaksi lengkap dengan ringkasan data.
+         * @returns {Promise<boolean>} true jika pengguna menekan "Ya, Hapus".
+         */
+        async confirmDelete(item) {
+            if (!this._isAvailable()) {
+                // Fallback aman bila CDN SweetAlert2 gagal dimuat, agar fitur delete tidak mati total.
+                return window.confirm(`Hapus transaksi "${item.description}"?`);
+            }
+
+            try {
+                const result = await Swal.fire({
+                    title: "Hapus Transaksi",
+                    html: `
+                        <p class="andi-swal-question">Apakah Anda yakin ingin menghapus transaksi ini?</p>
+                        <div class="andi-swal-details">${this._buildDetailRows(item)}</div>
+                    `,
+                    icon: "warning",
+                    showCancelButton: true,
+                    confirmButtonText: "Ya, Hapus",
+                    cancelButtonText: "Batal",
+                    reverseButtons: true,
+                    focusCancel: true,
+                    buttonsStyling: false,
+                    customClass: this._theme,
+                });
+                return Boolean(result.isConfirmed);
+            } catch (error) {
+                console.error("[DialogEngine.confirmDelete] Gagal menampilkan dialog:", error);
+                return false;
+            }
+        },
+
+        /** Notifikasi sukses (mis. setelah transaksi berhasil dihapus). */
+        async success(title, message) {
+            if (!this._isAvailable()) return;
+            try {
+                await Swal.fire({
+                    title,
+                    text: message,
+                    icon: "success",
+                    confirmButtonText: "OK",
+                    buttonsStyling: false,
+                    customClass: this._theme,
+                });
+            } catch (error) {
+                console.error("[DialogEngine.success] Gagal menampilkan dialog:", error);
+            }
+        },
+
+        /** Notifikasi error (mis. saat operasi hapus gagal). */
+        async error(title, message) {
+            if (!this._isAvailable()) return;
+            try {
+                await Swal.fire({
+                    title,
+                    text: message,
+                    icon: "error",
+                    confirmButtonText: "OK",
+                    buttonsStyling: false,
+                    customClass: this._theme,
+                });
+            } catch (error) {
+                console.error("[DialogEngine.error] Gagal menampilkan dialog:", error);
+            }
+        },
+    };
+
+    /* ==========================================================
+       13. EVENT ENGINE
        ========================================================== */
     let toastTimeout = null;
 
@@ -727,42 +839,45 @@
         }
     }
 
-    function handleTableClick(event) {
+    async function handleTableClick(event) {
         const button = event.target.closest("button[data-action]");
         if (!button) return;
 
         const { action, id } = button.dataset;
 
-        try {
-            if (action === "edit") {
+        if (action === "edit") {
+            try {
                 enterEditMode(id);
-                return;
+            } catch (error) {
+                console.error("[handleTableClick] Terjadi kesalahan pada aksi tabel:", error);
+                showToast("Terjadi kesalahan saat memproses aksi ini.", "error");
             }
+            return;
+        }
 
-            if (action === "delete") {
+        if (action === "delete") {
+            try {
                 const item = TransactionEngine.findTransaction(id);
                 if (!item) return;
 
-                const confirmed = window.confirm(
-                    `Hapus transaksi "${item.description}" senilai ${Utils.formatRupiah(item.amount)}?`
-                );
+                const confirmed = await DialogEngine.confirmDelete(item);
                 if (!confirmed) return;
 
                 const deleted = TransactionEngine.deleteTransaction(id);
                 if (!deleted) {
                     console.error("[handleTableClick] Gagal menghapus transaksi:", id);
-                    showToast("Transaksi gagal dihapus.", "error");
+                    await DialogEngine.error("Gagal", "Transaksi gagal dihapus.");
                     return;
                 }
 
                 if (State.editingId === id) resetFormToCreateMode();
 
-                showToast("Transaksi dihapus.");
                 persistAndRender();
+                await DialogEngine.success("Berhasil", "Transaksi berhasil dihapus.");
+            } catch (error) {
+                console.error("[handleTableClick] Terjadi kesalahan pada aksi tabel:", error);
+                await DialogEngine.error("Terjadi Kesalahan", "Terjadi kesalahan saat menghapus transaksi.");
             }
-        } catch (error) {
-            console.error("[handleTableClick] Terjadi kesalahan pada aksi tabel:", error);
-            showToast("Terjadi kesalahan saat memproses aksi ini.", "error");
         }
     }
 
@@ -811,7 +926,7 @@
     }
 
     /* ==========================================================
-       13. INIT
+       14. INIT
        ========================================================== */
     function init() {
         try {
