@@ -16,8 +16,9 @@
     10. Dashboard Engine
     11. Export Engine (kontrak untuk PDF/Excel/CSV di masa depan)
     12. Dialog Engine (SweetAlert2 — Sprint 11)
-    13. Event Engine
-    14. Init
+    13. Toast Engine (Sprint 3.2)
+    14. Event Engine
+    15. Init
    ========================================================== */
 
 (function () {
@@ -50,7 +51,7 @@
        ========================================================== */
     const CONFIG = Object.freeze({
         STORAGE_KEY: "andinomics-transactions",
-        TOAST_DURATION_MS: 3200,
+        TOAST_DURATION_MS: 3000,
         DESCRIPTION_MAX_LENGTH: 80,
         DATE_PATTERN: /^\d{4}-\d{2}-\d{2}$/,
         CHART_FALLBACK_COLORS: Object.freeze({
@@ -90,7 +91,7 @@
 
         todayDate: document.getElementById("today-date"),
         footerYear: document.getElementById("footer-year"),
-        toast: document.getElementById("toast"),
+        toastContainer: document.getElementById("toastContainer"),
         chartCanvas: document.getElementById("cashflowChart"),
     };
 
@@ -741,20 +742,69 @@
     };
 
     /* ==========================================================
-       13. EVENT ENGINE
+       13. TOAST ENGINE
+       Sprint 3.2 — Modern Toast Notification.
+       Toast dibangun sebagai elemen mandiri yang ditumpuk di
+       dalam #toastContainer, sehingga beberapa notifikasi bisa
+       tampil bersamaan tanpa saling menimpa (berbeda dari toast
+       lama yang hanya satu elemen tunggal).
        ========================================================== */
-    let toastTimeout = null;
+    const ToastEngine = {
+        /** Ikon & kelas warna per varian, mengikuti identitas ANDINOMICS. */
+        _variants: Object.freeze({
+            success: { icon: "fa-solid fa-circle-check", className: "toast--success" },
+            error: { icon: "fa-solid fa-circle-xmark", className: "toast--error" },
+            info: { icon: "fa-solid fa-circle-info", className: "toast--info" },
+            warning: { icon: "fa-solid fa-triangle-exclamation", className: "toast--warning" },
+        }),
 
+        /** Hapus satu toast dari DOM setelah animasi keluar selesai. */
+        _dismiss(toastEl) {
+            if (!toastEl || toastEl.dataset.dismissing === "true") return;
+            toastEl.dataset.dismissing = "true";
+            toastEl.classList.remove("toast--visible");
+            toastEl.classList.add("toast--leaving");
+            toastEl.addEventListener("transitionend", () => toastEl.remove(), { once: true });
+        },
+
+        /**
+         * Tampilkan satu toast baru.
+         * @param {string} message
+         * @param {"success"|"error"|"info"|"warning"} [variant]
+         */
+        show(message, variant = "success") {
+            if (!dom.toastContainer) return;
+
+            const meta = this._variants[variant] || this._variants.success;
+
+            const toastEl = document.createElement("div");
+            toastEl.className = `toast ${meta.className}`;
+            toastEl.setAttribute("role", variant === "error" ? "alert" : "status");
+            toastEl.innerHTML = `
+                <i class="${meta.icon} toast-icon" aria-hidden="true"></i>
+                <span class="toast-message"></span>
+                <button type="button" class="toast-close" aria-label="Tutup notifikasi">
+                    <i class="fa-solid fa-xmark" aria-hidden="true"></i>
+                </button>
+                <span class="toast-progress" style="animation-duration: ${CONFIG.TOAST_DURATION_MS}ms;"></span>
+            `;
+            toastEl.querySelector(".toast-message").textContent = message;
+            toastEl.querySelector(".toast-close").addEventListener("click", () => this._dismiss(toastEl));
+
+            dom.toastContainer.appendChild(toastEl);
+
+            // Trigger animasi masuk (fade + slide) pada frame berikutnya.
+            requestAnimationFrame(() => toastEl.classList.add("toast--visible"));
+
+            setTimeout(() => this._dismiss(toastEl), CONFIG.TOAST_DURATION_MS);
+        },
+    };
+
+    /* ==========================================================
+       14. EVENT ENGINE
+       ========================================================== */
     function showToast(message, variant = "success") {
-        if (!dom.toast) return;
-        dom.toast.textContent = message;
-        dom.toast.classList.remove("is-success", "is-error");
-        dom.toast.classList.add("is-visible", variant === "error" ? "is-error" : "is-success");
-
-        clearTimeout(toastTimeout);
-        toastTimeout = setTimeout(() => {
-            dom.toast.classList.remove("is-visible");
-        }, CONFIG.TOAST_DURATION_MS);
+        ToastEngine.show(message, variant);
     }
 
     /** Simpan state saat ini ke Local Storage, lalu sinkronkan seluruh tampilan. */
@@ -926,7 +976,7 @@
     }
 
     /* ==========================================================
-       14. INIT
+       15. INIT
        ========================================================== */
     function init() {
         try {
