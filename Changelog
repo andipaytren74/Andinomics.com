@@ -1,5 +1,18 @@
 # CHANGELOG — Andinomics `script.js`
 
+## Sprint 11 — Professional Transaction Experience
+
+### Part 11.1 — SweetAlert2 Integration
+- **Modul baru `DialogEngine`** ditambahkan di antara `ExportEngine` dan `EventEngine`, membungkus seluruh interaksi SweetAlert2 (`confirmDelete`, `success`, `error`) di satu tempat agar dialog baru di Sprint berikutnya tinggal menambah method, tanpa refactor ulang.
+- **`window.confirm()` pada aksi hapus transaksi diganti** dengan dialog SweetAlert2 modern (`DialogEngine.confirmDelete`) yang menampilkan judul **"Hapus Transaksi"**, pertanyaan konfirmasi, serta ringkasan **Keterangan, Kategori, Nominal, dan Tanggal** dari transaksi yang akan dihapus. Tombol: **Batal** dan **Ya, Hapus**.
+- **Notifikasi sukses** (`Berhasil` — "Transaksi berhasil dihapus.") dan **notifikasi error** (`DialogEngine.error`) ditampilkan lewat SweetAlert2 setelah proses hapus, menggantikan toast khusus untuk aksi hapus. Toast tetap dipertahankan untuk aksi lain (tambah, edit, dan error penyimpanan) — tidak ada perubahan pada fitur tersebut.
+- **Tema visual SweetAlert2 mengikuti identitas ANDINOMICS**: Background `#0F2418`, Card popup `#183326`, Primary/aksen `#FF7A00`, Text `#F8FAFC` — diimplementasikan lewat kelas kustom (`andi-swal-*`) memakai CSS variable yang sudah ada (`--card`, `--orange`, `--text`, dst.), sehingga tetap konsisten dengan desain lama tanpa mengubah gaya lama.
+- **`handleTableClick` menjadi `async`** untuk mendukung `await` pada dialog SweetAlert2; alur `edit` tidak terpengaruh dan tetap sinkron seperti sebelumnya.
+- **Fallback aman**: jika CDN SweetAlert2 gagal dimuat, `DialogEngine.confirmDelete` otomatis kembali memakai `window.confirm()` bawaan browser agar fitur hapus tidak pernah mati total.
+- **Library**: SweetAlert2 v11 dimuat via CDN (`jsdelivr`) dengan atribut `defer`, ditempatkan setelah Chart.js di `index.html` — tidak render-blocking dan tetap termuat sebelum `script.js` dieksekusi.
+- **Tidak ada perubahan** pada Local Storage, Dashboard, Chart, Search, maupun struktur HTML/CSS lama — hanya penambahan modul dan style baru.
+- **Self Review**: tidak ada console error / JavaScript error, delete tetap berfungsi (dengan/ tanpa SweetAlert2), Local Storage tetap auto save/load, Dashboard & Chart tetap update setelah hapus, popup responsif di desktop/laptop/tablet/mobile. Disintaks-cek dengan `node --check script.js` — lolos tanpa error.
+
 ## v3.0.0 — Core Engine Refactor
 
 ### ✨ Fitur Baru
