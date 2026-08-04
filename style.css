@@ -832,3 +832,134 @@ footer strong {
     .card-value { font-size: var(--fs-xl); }
     .brand-text p { display: none; }
 }
+
+/* ==========================================================
+   SPRINT 11 — SWEETALERT2 THEME (Part 11.1)
+   Kelas kustom agar dialog SweetAlert2 (konfirmasi hapus,
+   sukses, error) mengikuti identitas visual ANDINOMICS.
+   Blok ini hanya MENAMBAH gaya, tidak mengubah gaya lama.
+   ========================================================== */
+.andi-swal-popup {
+    background: var(--card) !important;
+    color: var(--text) !important;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg) !important;
+    box-shadow: var(--shadow-lg);
+    font-family: var(--font-base);
+    padding: var(--space-6) !important;
+}
+
+.andi-swal-title {
+    color: var(--text) !important;
+    font-size: var(--fs-xl) !important;
+    font-weight: 700 !important;
+}
+
+.andi-swal-content {
+    color: var(--text-muted) !important;
+    font-size: var(--fs-sm);
+}
+
+.andi-swal-question {
+    margin: 0 0 var(--space-4);
+    color: var(--text);
+}
+
+.andi-swal-details {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2);
+    background: var(--surface-2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    padding: var(--space-4);
+    text-align: left;
+}
+
+.andi-swal-row {
+    display: flex;
+    justify-content: space-between;
+    gap: var(--space-4);
+    font-size: var(--fs-sm);
+}
+
+.andi-swal-row-label {
+    color: var(--text-muted);
+}
+
+.andi-swal-row-value {
+    color: var(--text);
+    font-weight: 600;
+    text-align: right;
+    word-break: break-word;
+}
+
+.andi-swal-btn {
+    font-family: var(--font-base);
+    font-size: var(--fs-sm);
+    font-weight: 700;
+    padding: var(--space-3) var(--space-6);
+    border-radius: var(--radius-sm);
+    border: 1px solid transparent;
+    cursor: pointer;
+    transition: background var(--transition-fast), transform var(--transition-fast);
+}
+
+.andi-swal-btn--confirm {
+    background: var(--orange);
+    color: #1a1006;
+}
+
+.andi-swal-btn--confirm:hover {
+    background: var(--orange-hover);
+    transform: translateY(-1px);
+}
+
+.andi-swal-btn--cancel {
+    background: transparent;
+    color: var(--text-muted);
+    border-color: var(--border);
+}
+
+.andi-swal-btn--cancel:hover {
+    background: var(--surface-2);
+    color: var(--text);
+}
+
+.swal2-popup.andi-swal-popup .swal2-icon.swal2-warning {
+    border-color: var(--orange);
+    color: var(--orange);
+}
+
+.swal2-popup.andi-swal-popup .swal2-icon.swal2-success [class^="swal2-success-line"] {
+    background-color: var(--success);
+}
+
+.swal2-popup.andi-swal-popup .swal2-icon.swal2-success .swal2-success-ring {
+    border-color: var(--success);
+}
+
+.swal2-popup.andi-swal-popup .swal2-icon.swal2-error {
+    border-color: var(--danger);
+    color: var(--danger);
+}
+
+.swal2-popup.andi-swal-popup .swal2-timer-progress-bar {
+    background: var(--orange);
+}
+
+@media (max-width: 480px) {
+    .andi-swal-popup {
+        width: 92vw !important;
+        padding: var(--space-5) !important;
+    }
+
+    .andi-swal-row {
+        flex-direction: column;
+        gap: var(--space-1);
+    }
+
+    .andi-swal-row-value {
+        text-align: left;
+    }
+}
