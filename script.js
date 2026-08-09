@@ -608,6 +608,150 @@
 
 
     /* ==========================================================
+       10.5 ANALYTICS ENGINE
+       ========================================================== */
+
+    const AnalyticsEngine = {
+
+        render() {
+
+            try {
+
+                const transactions = State.transactions || [];
+
+                const incomeEl = document.getElementById("analyticsIncome");
+                const expenseEl = document.getElementById("analyticsExpense");
+                const balanceEl = document.getElementById("analyticsBalance");
+                const countEl = document.getElementById("analyticsTransactionCount");
+                const topCategoryEl = document.getElementById("analyticsTopCategory");
+                const lastTransactionEl = document.getElementById("analyticsLastTransaction");
+                const categoryListEl = document.getElementById("analyticsCategoryList");
+
+                let totalIncome = 0;
+                let totalExpense = 0;
+
+                const expenseByCategory = new Map();
+
+                transactions.forEach((transaction) => {
+                    const amount = Number(transaction.amount) || 0;
+
+                    if (transaction.type === "Pemasukan") {
+                        totalIncome += amount;
+                    }
+
+                    if (transaction.type === "Pengeluaran") {
+                        totalExpense += amount;
+
+                        const category = transaction.category || "Lainnya";
+
+                        expenseByCategory.set(
+                            category,
+                            (expenseByCategory.get(category) || 0) + amount
+                        );
+                    }
+                });
+
+                const balance = totalIncome - totalExpense;
+
+                if (incomeEl) {
+                    incomeEl.textContent = Utils.formatRupiah(totalIncome);
+                }
+
+                if (expenseEl) {
+                    expenseEl.textContent = Utils.formatRupiah(totalExpense);
+                }
+
+                if (balanceEl) {
+                    balanceEl.textContent = Utils.formatRupiah(balance);
+                    balanceEl.classList.toggle("analytics-positive", balance >= 0);
+                    balanceEl.classList.toggle("analytics-negative", balance < 0);
+                }
+
+                if (countEl) {
+                    countEl.textContent = String(transactions.length);
+                }
+
+                let topCategory = null;
+                let topCategoryAmount = 0;
+
+                expenseByCategory.forEach((amount, category) => {
+                    if (amount > topCategoryAmount) {
+                        topCategoryAmount = amount;
+                        topCategory = category;
+                    }
+                });
+
+                if (topCategoryEl) {
+                    if (topCategory) {
+                        topCategoryEl.innerHTML = `
+                            <strong>${Utils.escapeHtml(topCategory)}</strong>
+                            <br>
+                            <span>${Utils.formatRupiah(topCategoryAmount)}</span>
+                        `;
+                    } else {
+                        topCategoryEl.textContent = "-";
+                    }
+                }
+
+                const sortedTransactions = [...transactions].sort((a, b) => {
+                    return new Date(b.date) - new Date(a.date);
+                });
+
+                const latest = sortedTransactions[0];
+
+                if (lastTransactionEl) {
+                    if (latest) {
+                        lastTransactionEl.innerHTML = `
+                            <strong>${Utils.escapeHtml(latest.description)}</strong>
+                            <br>
+                            <span>${Utils.formatRupiah(latest.amount)}</span>
+                        `;
+                    } else {
+                        lastTransactionEl.textContent = "-";
+                    }
+                }
+
+                if (categoryListEl) {
+                    if (expenseByCategory.size === 0) {
+                        categoryListEl.innerHTML = `
+                            <p class="analytics-empty">Belum ada data pengeluaran.</p>
+                        `;
+                    } else {
+                        const sortedCategories = [...expenseByCategory.entries()].sort((a, b) => b[1] - a[1]);
+
+                        categoryListEl.innerHTML = sortedCategories
+                            .map(([category, amount]) => {
+                                const percentage = totalExpense > 0 ? (amount / totalExpense) * 100 : 0;
+
+                                return `
+                                    <div class="analytics-category-item">
+                                        <div class="analytics-category-info">
+                                            <span>${Utils.escapeHtml(category)}</span>
+                                            <strong>${Utils.formatRupiah(amount)}</strong>
+                                        </div>
+                                        <div class="analytics-progress">
+                                            <div class="analytics-progress-bar" style="width:${percentage.toFixed(1)}%"></div>
+                                        </div>
+                                        <small>${percentage.toFixed(1)}%</small>
+                                    </div>
+                                `;
+                            })
+                            .join("");
+                    }
+                }
+
+            } catch (error) {
+
+                console.error("[AnalyticsEngine.render]", error);
+
+            }
+
+        }
+
+    };
+
+
+    /* ==========================================================
        11. EXPORT ENGINE
        PDF / Excel / CSV
        ========================================================== */
@@ -1064,6 +1208,8 @@
         }
 
         RenderEngine.renderAll(filterText ?? dom.searchInput.value);
+
+        AnalyticsEngine.render();
     }
 
     function resetFormToCreateMode() {
@@ -1235,7 +1381,14 @@
         }
 
         if (action === "analytics") {
-            showToast("Fitur ini akan segera hadir di versi berikutnya.");
+            AnalyticsEngine.render();
+
+            document.getElementById("analyticsSection")?.scrollIntoView({
+                behavior: "smooth",
+                block: "start",
+            });
+
+            return;
         }
     }
 
@@ -1263,6 +1416,8 @@
             bindEvents();
 
             RenderEngine.renderAll();
+
+            AnalyticsEngine.render();
         } catch (error) {
             console.error("[init] Gagal menginisialisasi Andinomics:", error);
             showToast("Terjadi kesalahan saat memuat aplikasi.", "error");
