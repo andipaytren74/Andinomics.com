@@ -1,71 +1,1060 @@
-# CHANGELOG — Andinomics `script.js`
+/* ==========================================================
+   ANDINOMICS — Smart Financial Dashboard
+   Theme   : Dark Green Premium + Orange
+   Developer: Andi Muhammad Hakim
+   ========================================================== */
 
-## Sprint 3.2 — Modern Toast Notification
+/* ==========================================================
+   1. ROOT / DESIGN TOKENS
+   ========================================================== */
+:root {
+    /* Colors */
+    --bg: #0f2418;
+    --card: #183326;
+    --card-hover: #1f3f2e;
+    --border: #28503a;
 
-### Target: Modern Toast Notification
-- **Sistem toast lama (satu elemen tunggal, muncul dari bawah-tengah) diganti total** dengan sistem toast modern berbasis `#toastContainer` yang mendukung beberapa notifikasi tampil bertumpuk secara bersamaan, tanpa saling menimpa.
-- **Modul baru `ToastEngine`** ditambahkan (section 13, sebelum Event Engine), mengikuti pola arsitektur `DialogEngine` dari Sprint 11 — setiap toast dibuat sebagai elemen mandiri (`show()`), dengan method dismiss internal (`_dismiss()`) yang dipakai baik oleh timer otomatis maupun tombol tutup manual.
-- **`showToast(message, variant)` dipertahankan sebagai wrapper tipis** yang mendelegasikan ke `ToastEngine.show()` — seluruh 10 titik pemanggilan `showToast()` di kode lama (form submit, delete, validasi, error storage, quick menu, init) tidak perlu diubah sama sekali.
-- **Animasi halus (fade + slide)**: toast masuk dengan fade-in + slide dari kanan (desktop) atau dari atas (mobile), dan keluar dengan animasi yang sama secara terbalik, memakai CSS `transition` (bukan `transform` mendadak) agar terasa modern dan tidak patah-patah.
-- **Warna varian mengikuti tema ANDINOMICS**, memakai CSS variable yang sudah ada di `:root` (tidak ada warna baru yang di-hardcode):
-  - Success → hijau (`--success`)
-  - Error → merah (`--danger`)
-  - Info → biru (`--blue`)
-  - Warning → oranye (`--orange`)
-- **Posisi**: toast container berada di **kanan atas** pada desktop/laptop/tablet, dan otomatis menyesuaikan menjadi **penuh lebar di atas** pada mobile (`max-width: 640px`) lewat media query baru — tidak mengubah breakpoint responsive yang sudah ada di file lain.
-- **Auto-dismiss 3 detik + progress bar**: `CONFIG.TOAST_DURATION_MS` diubah dari `3200` → `3000` (persis 3 detik). Setiap toast memiliki progress bar (`.toast-progress`) yang mengecil dari 100% → 0% via CSS `@keyframes`, dengan durasi animasi disinkronkan langsung dari `CONFIG.TOAST_DURATION_MS` lewat inline style dari JavaScript — bukan angka hardcode kedua.
-- **Dapat ditutup manual** lewat tombol close (ikon `×`) di setiap toast, selain hilang otomatis.
-- **Tidak ada perubahan** pada Local Storage, Dashboard, Chart, Search, `DialogEngine`/SweetAlert2 (Sprint 11), maupun arsitektur/urutan modul lain — hanya toast lama yang diganti, modul lain hanya digeser nomor urutnya di komentar header (Toast Engine disisipkan sebagai modul 13, Event Engine → 14, Init → 15).
-- **Self Review**: tidak ada console error / JavaScript error, seluruh fitur lama (tambah, edit, hapus + dialog SweetAlert2, search, dashboard, chart) tetap berjalan dan tetap memicu toast yang benar. Disintaks-cek dengan `node --check script.js` — lolos tanpa error. CSS diverifikasi seimbang (brace terbuka = tertutup).
+    --orange: #ff7a00;
+    --orange-hover: #ff8c1f;
+    --blue: #3478f6;
+    --success: #2ecc71;
+    --danger: #ff5d5d;
 
-## Sprint 11 — Professional Transaction Experience
+    --text: #f8fafc;
+    --text-muted: #9eb3a6;
+    --surface-2: #214131;
+    --surface-3: #234734;
 
-### Part 11.1 — SweetAlert2 Integration
-- **Modul baru `DialogEngine`** ditambahkan di antara `ExportEngine` dan `EventEngine`, membungkus seluruh interaksi SweetAlert2 (`confirmDelete`, `success`, `error`) di satu tempat agar dialog baru di Sprint berikutnya tinggal menambah method, tanpa refactor ulang.
-- **`window.confirm()` pada aksi hapus transaksi diganti** dengan dialog SweetAlert2 modern (`DialogEngine.confirmDelete`) yang menampilkan judul **"Hapus Transaksi"**, pertanyaan konfirmasi, serta ringkasan **Keterangan, Kategori, Nominal, dan Tanggal** dari transaksi yang akan dihapus. Tombol: **Batal** dan **Ya, Hapus**.
-- **Notifikasi sukses** (`Berhasil` — "Transaksi berhasil dihapus.") dan **notifikasi error** (`DialogEngine.error`) ditampilkan lewat SweetAlert2 setelah proses hapus, menggantikan toast khusus untuk aksi hapus. Toast tetap dipertahankan untuk aksi lain (tambah, edit, dan error penyimpanan) — tidak ada perubahan pada fitur tersebut.
-- **Tema visual SweetAlert2 mengikuti identitas ANDINOMICS**: Background `#0F2418`, Card popup `#183326`, Primary/aksen `#FF7A00`, Text `#F8FAFC` — diimplementasikan lewat kelas kustom (`andi-swal-*`) memakai CSS variable yang sudah ada (`--card`, `--orange`, `--text`, dst.), sehingga tetap konsisten dengan desain lama tanpa mengubah gaya lama.
-- **`handleTableClick` menjadi `async`** untuk mendukung `await` pada dialog SweetAlert2; alur `edit` tidak terpengaruh dan tetap sinkron seperti sebelumnya.
-- **Fallback aman**: jika CDN SweetAlert2 gagal dimuat, `DialogEngine.confirmDelete` otomatis kembali memakai `window.confirm()` bawaan browser agar fitur hapus tidak pernah mati total.
-- **Library**: SweetAlert2 v11 dimuat via CDN (`jsdelivr`) dengan atribut `defer`, ditempatkan setelah Chart.js di `index.html` — tidak render-blocking dan tetap termuat sebelum `script.js` dieksekusi.
-- **Tidak ada perubahan** pada Local Storage, Dashboard, Chart, Search, maupun struktur HTML/CSS lama — hanya penambahan modul dan style baru.
-- **Self Review**: tidak ada console error / JavaScript error, delete tetap berfungsi (dengan/ tanpa SweetAlert2), Local Storage tetap auto save/load, Dashboard & Chart tetap update setelah hapus, popup responsif di desktop/laptop/tablet/mobile. Disintaks-cek dengan `node --check script.js` — lolos tanpa error.
+    /* Typography */
+    --font-base: 'Plus Jakarta Sans', 'Poppins', system-ui, sans-serif;
+    --fs-xs: 0.8125rem;
+    --fs-sm: 0.9375rem;
+    --fs-base: 1rem;
+    --fs-lg: 1.125rem;
+    --fs-xl: 1.5rem;
+    --fs-2xl: 2rem;
+    --fs-3xl: 2.625rem;
 
-## v3.0.0 — Core Engine Refactor
+    /* Spacing scale */
+    --space-1: 4px;
+    --space-2: 8px;
+    --space-3: 12px;
+    --space-4: 16px;
+    --space-5: 20px;
+    --space-6: 24px;
+    --space-7: 32px;
+    --space-8: 40px;
+    --space-9: 56px;
 
-### ✨ Fitur Baru
-- **Local Storage aktif** — `Storage.load() / save() / clear() / exists() / export() / import()`, dengan key `andinomics-transactions`.
-- **Auto Load** — seluruh transaksi otomatis dibaca dari Local Storage saat `init()`, sebelum render pertama.
-- **Auto Save** — setiap tambah, edit, dan hapus transaksi otomatis tersimpan lewat `persistAndRender()`.
-- **Dashboard Engine** — perhitungan saldo, pemasukan, pengeluaran, jumlah transaksi, kategori terbesar, dan transaksi terakhir dipisah ke modul `DashboardEngine.getSummary()`. Kategori terbesar dan transaksi terakhir dirender jika elemen HTML terkait tersedia (opsional, tidak memaksa perubahan markup saat ini).
-- **Export Engine (kontrak)** — `ExportEngine.toCSV/toPDF/toExcel` disiapkan sebagai stub agar fitur ekspor bisa ditambahkan tanpa refactor ulang struktur.
+    /* Radius */
+    --radius-sm: 10px;
+    --radius-md: 14px;
+    --radius-lg: 18px;
+    --radius-xl: 22px;
 
-### 🛠️ Refactor Arsitektur
-- Kode disusun ulang mengikuti urutan: **State → Config → DOM → Utils → Storage → Validation → Transaction Engine → Render Engine → Chart Engine → Dashboard Engine → Export Engine → Event Engine → Init**.
-- `transactions`, `editingId`, dan `cashflowChart` yang tadinya variabel lepas kini dienkapsulasi dalam objek `State`.
-- Konstanta hardcoded (`STORAGE_KEY`, durasi toast, batas panjang deskripsi, regex tanggal, warna fallback chart) dipindahkan ke objek `CONFIG` yang di-*freeze*.
-- Logika transaksi (create/update/delete/find/sort/filter) dipisah ke `TransactionEngine`, mengikuti Single Responsibility.
-- Logika render (`dashboard/table/chart/all`) dipisah ke `RenderEngine`; pembuatan baris tabel diekstrak ke `_buildRow()` agar tidak duplikat.
-- Logika chart dipisah ke `ChartEngine`; pembentukan dataset dan pengambilan warna tema diekstrak ke fungsi privat (`_buildDatasets`, `_getThemeColors`).
-- Duplikasi logika "simpan + render" pada handler tambah/edit/hapus disatukan menjadi `persistAndRender()` (DRY).
+    /* Elevation */
+    --shadow-sm: 0 4px 12px rgba(0, 0, 0, 0.22);
+    --shadow-md: 0 10px 25px rgba(0, 0, 0, 0.30);
+    --shadow-lg: 0 20px 45px rgba(0, 0, 0, 0.35);
 
-### 🐞 Bug & Validasi Diperbaiki
-- Validasi nominal kini membedakan pesan untuk: kosong/bukan angka, negatif, dan nol (sebelumnya digabung jadi satu kondisi `<= 0`).
-- Validasi tanggal kini memeriksa format `YYYY-MM-DD` dan memastikan tanggal valid secara kalender, bukan hanya cek kosong.
-- `Validation.clear()` dan `handleQuickMenuClick` diberi optional chaining agar tidak error jika elemen opsional belum ada di HTML.
+    /* Motion */
+    --transition-fast: 0.18s ease;
+    --transition-base: 0.3s ease;
 
-### 🔒 Keamanan
-- Seluruh output ke tabel tetap melalui `Utils.escapeHtml()` untuk mencegah XSS (perilaku dipertahankan, diverifikasi ulang).
-- Data yang dibaca dari Local Storage divalidasi bentuknya (`_isValidRecord`) sebelum dipakai, untuk mencegah data rusak/asing merusak state aplikasi.
-- Semua akses `localStorage` (load/save/clear/exists) dibungkus `try...catch` dengan `console.error` informatif (mengantisipasi storage penuh, mode private browsing, dsb).
+    /* Layout */
+    --content-width: min(1320px, 92%);
+    --header-height: 84px;
+}
 
-### ⚡ Performa
-- Chart **tidak pernah dibuat ulang** — instance dibuat sekali di `State.chartInstance`, selanjutnya selalu memakai `.update()`.
-- Render tabel & dashboard tetap satu kali `innerHTML` per siklus render (tidak ada manipulasi DOM per-baris berulang).
+/* ==========================================================
+   2. RESET
+   ========================================================== */
+*,
+*::before,
+*::after {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
 
-### 🧹 Self Review
-- Tidak ditemukan kode duplikat, dead code, atau variabel tak terpakai pada hasil akhir.
-- Tidak ada perubahan pada HTML maupun CSS.
-- Tidak ada penggantian framework; tetap vanilla JavaScript (ES2023, IIFE + `"use strict"`).
-- Seluruh fitur lama (tambah, edit, hapus, search, dashboard, chart, toast) tetap berjalan dengan perilaku yang sama.
-- Disintaks-cek dengan `node -c script.js` — lolos tanpa error.
+html {
+    scroll-behavior: smooth;
+}
+
+body {
+    background: var(--bg);
+    color: var(--text-muted);
+    font-family: var(--font-base);
+    min-height: 100vh;
+    line-height: 1.5;
+}
+
+img {
+    max-width: 100%;
+    display: block;
+}
+
+button,
+input,
+select {
+    font-family: inherit;
+    color: inherit;
+}
+
+ul {
+    list-style: none;
+}
+
+a {
+    color: inherit;
+}
+
+/* Respect reduced-motion preference */
+@media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+        scroll-behavior: auto !important;
+    }
+}
+
+/* Utility */
+.visually-hidden {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+}
+
+.skip-link {
+    position: absolute;
+    top: -100%;
+    left: var(--space-4);
+    background: var(--orange);
+    color: white;
+    padding: var(--space-3) var(--space-5);
+    border-radius: var(--radius-sm);
+    z-index: 1000;
+    font-weight: 600;
+    transition: top var(--transition-fast);
+}
+
+.skip-link:focus {
+    top: var(--space-3);
+}
+
+/* Consistent, visible focus state across all interactive elements */
+a:focus-visible,
+button:focus-visible,
+input:focus-visible,
+select:focus-visible,
+[tabindex]:focus-visible {
+    outline: 2px solid var(--orange);
+    outline-offset: 2px;
+}
+
+/* ==========================================================
+   3. TYPOGRAPHY
+   ========================================================== */
+h1, h2, h3 {
+    color: var(--text);
+    font-weight: 700;
+    line-height: 1.25;
+}
+
+h1 { font-size: var(--fs-xl); letter-spacing: 0.5px; }
+h2 { font-size: var(--fs-2xl); }
+h3 { font-size: var(--fs-sm); font-weight: 500; color: var(--text-muted); }
+
+p { font-size: var(--fs-base); }
+
+/* ==========================================================
+   4. LAYOUT
+   ========================================================== */
+main {
+    width: var(--content-width);
+    margin: 0 auto;
+    padding: var(--space-8) 0 var(--space-9);
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-8);
+}
+
+/* ==========================================================
+   5. HEADER
+   ========================================================== */
+.topbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: var(--space-5);
+    width: 100%;
+    min-height: var(--header-height);
+    padding: var(--space-4) 7%;
+    background: rgba(23, 48, 34, 0.85);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border-bottom: 1px solid var(--border);
+    position: sticky;
+    top: 0;
+    z-index: 100;
+}
+
+.brand {
+    display: flex;
+    align-items: center;
+    gap: var(--space-4);
+}
+
+.brand-logo{
+
+    width:42px;
+
+    height:42px;
+
+    object-fit:contain;
+
+    display:block;
+
+}
+
+.brand-text h1 {
+    font-size: var(--fs-xl);
+    letter-spacing: 1px;
+}
+
+.brand-text p {
+    color: var(--text-muted);
+    font-size: var(--fs-xs);
+}
+
+.header-actions {
+    display: flex;
+    align-items: center;
+    gap: var(--space-5);
+    flex-wrap: wrap;
+}
+
+.date-box {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    color: var(--text-muted);
+    font-size: var(--fs-sm);
+}
+
+.date-box i { color: var(--orange); }
+
+.profile {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+    padding: var(--space-2) var(--space-4);
+    background: var(--surface-2);
+    border-radius: var(--radius-md);
+    color: var(--text);
+    font-weight: 500;
+    font-size: var(--fs-sm);
+}
+
+.profile i {
+    font-size: var(--fs-xl);
+    color: var(--orange);
+}
+
+/* ==========================================================
+   6. HERO
+   ========================================================== */
+.hero {
+    text-align: center;
+}
+
+.hero h2 {
+    font-size: var(--fs-3xl);
+    margin-bottom: var(--space-3);
+}
+
+.hero > p {
+    color: var(--text-muted);
+    font-size: var(--fs-lg);
+    max-width: 640px;
+    margin: 0 auto;
+}
+
+.mini-info {
+    display: flex;
+    justify-content: center;
+    gap: var(--space-5);
+    margin-top: var(--space-7);
+    flex-wrap: wrap;
+}
+
+.mini-info-item {
+    flex: 1;
+    min-width: 240px;
+    max-width: 380px;
+    text-align: left;
+    background: var(--card);
+    padding: var(--space-5);
+    border-radius: var(--radius-md);
+    border: 1px solid var(--border);
+}
+
+.mini-info-item strong {
+    display: block;
+    margin-bottom: var(--space-2);
+    color: var(--text);
+}
+
+.status-dot {
+    display: inline-block;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--success);
+    margin-right: var(--space-2);
+    box-shadow: 0 0 0 3px rgba(46, 204, 113, 0.2);
+}
+
+/* ==========================================================
+   7. DASHBOARD / CARDS
+   ========================================================== */
+.dashboard {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: var(--space-5);
+}
+
+.card {
+    position: relative;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: var(--space-6);
+    box-shadow: var(--shadow-md);
+    transition: transform var(--transition-base), background var(--transition-base);
+    overflow: hidden;
+}
+
+.card::before {
+    content: '';
+    position: absolute;
+    inset: 0 0 auto 0;
+    height: 3px;
+    background: var(--accent, var(--orange));
+}
+
+.card-saldo { --accent: var(--orange); }
+.card-income { --accent: var(--success); }
+.card-expense { --accent: var(--danger); }
+.card-count { --accent: var(--blue); }
+
+.card:hover {
+    transform: translateY(-6px);
+    background: var(--card-hover);
+}
+
+.card .icon {
+    width: 52px;
+    height: 52px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    border-radius: var(--radius-sm);
+    background: color-mix(in srgb, var(--accent, var(--orange)) 16%, transparent);
+    color: var(--accent, var(--orange));
+    font-size: var(--fs-lg);
+    margin-bottom: var(--space-5);
+}
+
+.card h3 {
+    margin-bottom: var(--space-2);
+}
+
+.card-value {
+    color: var(--text);
+    font-size: var(--fs-2xl);
+    font-weight: 700;
+}
+
+/* ==========================================================
+   QUICK MENU
+   ========================================================== */
+.quick-menu {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: var(--space-4);
+}
+
+.quick-menu button {
+    height: 60px;
+    font-size: var(--fs-sm);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: var(--space-3);
+    background: var(--card);
+    border: 1px solid var(--border);
+    color: var(--text);
+}
+
+.quick-menu button:hover {
+    background: var(--surface-2);
+    border-color: var(--orange);
+}
+
+.quick-menu button i {
+    color: var(--orange);
+}
+
+/* ==========================================================
+   8. BUTTONS (global)
+   ========================================================== */
+button {
+    border: none;
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    font-weight: 600;
+    transition: background var(--transition-fast), transform var(--transition-fast);
+}
+
+.submit-btn,
+.cancel-btn {
+    height: 56px;
+    padding: 0 var(--space-6);
+    font-size: var(--fs-base);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--space-3);
+}
+
+.submit-btn {
+    background: var(--orange);
+    color: white;
+    flex: 1;
+}
+
+.submit-btn:hover {
+    background: var(--orange-hover);
+}
+
+.cancel-btn {
+    background: transparent;
+    color: var(--text-muted);
+    border: 1px solid var(--border);
+}
+
+.cancel-btn:hover {
+    border-color: var(--danger);
+    color: var(--danger);
+}
+
+.form-actions {
+    display: flex;
+    gap: var(--space-4);
+    margin-top: var(--space-3);
+}
+
+/* ==========================================================
+   9. CHART
+   ========================================================== */
+.chart-box {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: var(--space-7);
+    box-shadow: var(--shadow-md);
+}
+
+.chart-box-header {
+    margin-bottom: var(--space-6);
+}
+
+.chart-box-header h2 {
+    margin-bottom: var(--space-1);
+}
+
+.chart-subtitle {
+    color: var(--text-muted);
+    font-size: var(--fs-sm);
+}
+
+.chart-canvas-wrap {
+    position: relative;
+    height: 360px;
+}
+
+.chart-canvas-wrap canvas {
+    width: 100% !important;
+    height: 100% !important;
+}
+
+/* ==========================================================
+   10. FORM
+   ========================================================== */
+.form-card {
+    background: var(--card);
+    padding: var(--space-7);
+    border-radius: var(--radius-xl);
+    border: 1px solid var(--border);
+    box-shadow: var(--shadow-md);
+}
+
+.form-card h2 {
+    margin-bottom: var(--space-6);
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+}
+
+.form-card h2 i {
+    color: var(--orange);
+}
+
+.form-group {
+    margin-bottom: var(--space-5);
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: var(--space-2);
+    font-weight: 600;
+    font-size: var(--fs-sm);
+    color: var(--text);
+}
+
+.label-optional {
+    font-weight: 400;
+    color: var(--text-muted);
+}
+
+.grid-2 {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: var(--space-4);
+}
+
+input,
+select {
+    width: 100%;
+    padding: var(--space-4);
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--border);
+    background: var(--surface-2);
+    color: var(--text);
+    font-size: var(--fs-sm);
+}
+
+input::placeholder {
+    color: var(--text-muted);
+}
+
+input:focus,
+select:focus {
+    outline: none;
+    border-color: var(--orange);
+}
+
+input[aria-invalid="true"],
+select[aria-invalid="true"] {
+    border-color: var(--danger);
+}
+
+.form-error {
+    display: block;
+    min-height: 1.1em;
+    margin-top: var(--space-2);
+    color: var(--danger);
+    font-size: var(--fs-xs);
+}
+
+/* Native file input button */
+input[type="file"] {
+    padding: var(--space-3);
+    cursor: pointer;
+}
+
+/* ==========================================================
+   11. TABLE / HISTORY
+   ========================================================== */
+.history-card {
+    background: var(--card);
+    padding: var(--space-7);
+    border-radius: var(--radius-xl);
+    border: 1px solid var(--border);
+    box-shadow: var(--shadow-md);
+}
+
+.history-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: var(--space-6);
+    gap: var(--space-5);
+    flex-wrap: wrap;
+}
+
+.history-header h2 {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+}
+
+.history-header h2 i {
+    color: var(--orange);
+}
+
+.search-box {
+    position: relative;
+    width: 300px;
+    max-width: 100%;
+}
+
+.search-box i {
+    position: absolute;
+    left: var(--space-4);
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--text-muted);
+    pointer-events: none;
+}
+
+.search-box input {
+    padding-left: calc(var(--space-4) * 2 + 14px);
+}
+
+.table-responsive {
+    overflow-x: auto;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    min-width: 640px;
+}
+
+th {
+    background: var(--surface-3);
+    color: var(--text);
+    padding: var(--space-4);
+    text-align: left;
+    font-size: var(--fs-xs);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+th:first-child { border-radius: var(--radius-sm) 0 0 var(--radius-sm); }
+th:last-child { border-radius: 0 var(--radius-sm) var(--radius-sm) 0; }
+
+td {
+    padding: var(--space-4);
+    border-bottom: 1px solid var(--border);
+    font-size: var(--fs-sm);
+}
+
+tbody tr {
+    transition: background var(--transition-fast);
+}
+
+tbody tr:hover {
+    background: rgba(255, 255, 255, 0.03);
+}
+
+.empty-data {
+    text-align: center;
+    padding: var(--space-9) var(--space-5);
+    color: var(--text-muted);
+    font-size: var(--fs-lg);
+}
+
+.empty-data i {
+    font-size: 3.4rem;
+    color: var(--orange);
+    margin-bottom: var(--space-4);
+    display: block;
+}
+
+.badge {
+    display: inline-block;
+    padding: var(--space-1) var(--space-3);
+    border-radius: var(--radius-sm);
+    font-size: var(--fs-xs);
+    font-weight: 700;
+    color: var(--bg);
+}
+
+.badge-income { background: var(--success); }
+.badge-expense { background: var(--danger); color: white; }
+
+.amount-income { color: var(--success); font-weight: 600; }
+.amount-expense { color: var(--danger); font-weight: 600; }
+
+.action-group {
+    display: flex;
+    gap: var(--space-2);
+}
+
+.action-group button {
+    width: 36px;
+    height: 36px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--surface-2);
+    color: var(--text-muted);
+}
+
+.edit-btn:hover {
+    background: var(--blue);
+    color: white;
+}
+
+.delete-btn:hover {
+    background: var(--danger);
+    color: white;
+}
+
+/* ==========================================================
+   12. FOOTER
+   ========================================================== */
+footer {
+    padding: var(--space-7) var(--space-5);
+    text-align: center;
+    color: var(--text-muted);
+    border-top: 1px solid var(--border);
+    font-size: var(--fs-sm);
+}
+
+footer p + p {
+    margin-top: var(--space-2);
+}
+
+footer strong {
+    color: var(--orange);
+}
+
+/* ==========================================================
+   TOAST — Sprint 3.2: Modern Toast Notification
+   ========================================================== */
+.toast-container {
+    position: fixed;
+    top: var(--space-6);
+    right: var(--space-6);
+    z-index: 300;
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-3);
+    max-width: min(380px, 92vw);
+    pointer-events: none;
+}
+
+.toast {
+    position: relative;
+    display: flex;
+    align-items: flex-start;
+    gap: var(--space-3);
+    background: var(--card);
+    color: var(--text);
+    border: 1px solid var(--border);
+    border-left: 4px solid var(--text-muted);
+    border-radius: var(--radius-md);
+    padding: var(--space-4) var(--space-5);
+    box-shadow: var(--shadow-lg);
+    font-size: var(--fs-sm);
+    font-weight: 600;
+    overflow: hidden;
+    opacity: 0;
+    transform: translateX(24px);
+    transition: opacity var(--transition-base), transform var(--transition-base);
+    pointer-events: auto;
+}
+
+.toast--visible {
+    opacity: 1;
+    transform: translateX(0);
+}
+
+.toast--leaving {
+    opacity: 0;
+    transform: translateX(24px);
+}
+
+.toast-icon {
+    font-size: var(--fs-lg);
+    line-height: 1;
+    margin-top: 2px;
+}
+
+.toast-message {
+    flex: 1;
+    line-height: 1.4;
+}
+
+.toast-close {
+    background: none;
+    border: none;
+    color: var(--text-muted);
+    cursor: pointer;
+    font-size: var(--fs-sm);
+    padding: 0;
+    line-height: 1;
+    transition: color var(--transition-fast);
+}
+
+.toast-close:hover {
+    color: var(--text);
+}
+
+.toast-progress {
+    position: absolute;
+    left: 0;
+    bottom: 0;
+    height: 3px;
+    width: 100%;
+    background: currentColor;
+    opacity: 0.65;
+    transform-origin: left;
+    animation-name: toast-progress-shrink;
+    animation-timing-function: linear;
+    animation-fill-mode: forwards;
+}
+
+@keyframes toast-progress-shrink {
+    from { transform: scaleX(1); }
+    to { transform: scaleX(0); }
+}
+
+.toast--success { border-left-color: var(--success); }
+.toast--success .toast-icon,
+.toast--success .toast-progress { color: var(--success); }
+
+.toast--error { border-left-color: var(--danger); }
+.toast--error .toast-icon,
+.toast--error .toast-progress { color: var(--danger); }
+
+.toast--info { border-left-color: var(--blue); }
+.toast--info .toast-icon,
+.toast--info .toast-progress { color: var(--blue); }
+
+.toast--warning { border-left-color: var(--orange); }
+.toast--warning .toast-icon,
+.toast--warning .toast-progress { color: var(--orange); }
+
+@media (max-width: 640px) {
+    .toast-container {
+        top: var(--space-4);
+        right: var(--space-4);
+        left: var(--space-4);
+        max-width: none;
+    }
+
+    .toast {
+        transform: translateY(-16px);
+    }
+
+    .toast--visible {
+        transform: translateY(0);
+    }
+
+    .toast--leaving {
+        transform: translateY(-16px);
+    }
+}
+
+/* ==========================================================
+   SCROLLBAR
+   ========================================================== */
+::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+
+::-webkit-scrollbar-thumb {
+    background: var(--orange);
+    border-radius: 20px;
+}
+
+/* ==========================================================
+   13. RESPONSIVE
+   ========================================================== */
+@media (max-width: 960px) {
+    .hero h2 { font-size: var(--fs-2xl); }
+    .chart-canvas-wrap { height: 300px; }
+}
+
+@media (max-width: 720px) {
+    .topbar {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: var(--space-4);
+        padding: var(--space-4) 6%;
+    }
+
+    .header-actions {
+        width: 100%;
+        justify-content: space-between;
+    }
+
+    .grid-2 {
+        grid-template-columns: 1fr;
+    }
+
+    .history-header {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .search-box {
+        width: 100%;
+    }
+
+    .form-actions {
+        flex-direction: column;
+    }
+}
+
+@media (max-width: 480px) {
+    .hero h2 { font-size: var(--fs-xl); }
+    .card-value { font-size: var(--fs-xl); }
+    .brand-text p { display: none; }
+}
+
+/* ==========================================================
+   SPRINT 11 — SWEETALERT2 THEME (Part 11.1)
+   Kelas kustom agar dialog SweetAlert2 (konfirmasi hapus,
+   sukses, error) mengikuti identitas visual ANDINOMICS.
+   Blok ini hanya MENAMBAH gaya, tidak mengubah gaya lama.
+   ========================================================== */
+.andi-swal-popup {
+    background: var(--card) !important;
+    color: var(--text) !important;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg) !important;
+    box-shadow: var(--shadow-lg);
+    font-family: var(--font-base);
+    padding: var(--space-6) !important;
+}
+
+.andi-swal-title {
+    color: var(--text) !important;
+    font-size: var(--fs-xl) !important;
+    font-weight: 700 !important;
+}
+
+.andi-swal-content {
+    color: var(--text-muted) !important;
+    font-size: var(--fs-sm);
+}
+
+.andi-swal-question {
+    margin: 0 0 var(--space-4);
+    color: var(--text);
+}
+
+.andi-swal-details {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2);
+    background: var(--surface-2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    padding: var(--space-4);
+    text-align: left;
+}
+
+.andi-swal-row {
+    display: flex;
+    justify-content: space-between;
+    gap: var(--space-4);
+    font-size: var(--fs-sm);
+}
+
+.andi-swal-row-label {
+    color: var(--text-muted);
+}
+
+.andi-swal-row-value {
+    color: var(--text);
+    font-weight: 600;
+    text-align: right;
+    word-break: break-word;
+}
+
+.andi-swal-btn {
+    font-family: var(--font-base);
+    font-size: var(--fs-sm);
+    font-weight: 700;
+    padding: var(--space-3) var(--space-6);
+    border-radius: var(--radius-sm);
+    border: 1px solid transparent;
+    cursor: pointer;
+    transition: background var(--transition-fast), transform var(--transition-fast);
+}
+
+.andi-swal-btn--confirm {
+    background: var(--orange);
+    color: #1a1006;
+}
+
+.andi-swal-btn--confirm:hover {
+    background: var(--orange-hover);
+    transform: translateY(-1px);
+}
+
+.andi-swal-btn--cancel {
+    background: transparent;
+    color: var(--text-muted);
+    border-color: var(--border);
+}
+
+.andi-swal-btn--cancel:hover {
+    background: var(--surface-2);
+    color: var(--text);
+}
+
+.swal2-popup.andi-swal-popup .swal2-icon.swal2-warning {
+    border-color: var(--orange);
+    color: var(--orange);
+}
+
+.swal2-popup.andi-swal-popup .swal2-icon.swal2-success [class^="swal2-success-line"] {
+    background-color: var(--success);
+}
+
+.swal2-popup.andi-swal-popup .swal2-icon.swal2-success .swal2-success-ring {
+    border-color: var(--success);
+}
+
+.swal2-popup.andi-swal-popup .swal2-icon.swal2-error {
+    border-color: var(--danger);
+    color: var(--danger);
+}
+
+.swal2-popup.andi-swal-popup .swal2-timer-progress-bar {
+    background: var(--orange);
+}
+
+@media (max-width: 480px) {
+    .andi-swal-popup {
+        width: 92vw !important;
+        padding: var(--space-5) !important;
+    }
+
+    .andi-swal-row {
+        flex-direction: column;
+        gap: var(--space-1);
+    }
+
+    .andi-swal-row-value {
+        text-align: left;
+    }
+}
