@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="id">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0">
+
+    <title>Login | Andinomics</title>
+
+    <link
+        rel="stylesheet"
+        href="login.css">
+
+</head>
+
+
+<body class="login-page">
+
+
+    <!-- =========================================
+         LOGIN CONTAINER
+    ========================================== -->
+
+    <main class="login-container">
+
+
+        <!-- =====================================
+             LOGIN CARD
+        ====================================== -->
+
+        <section class="login-card">
+
+
+            <!-- Logo -->
+
+            <img
+                src="andinomics-logo.jpeg"
+                alt="Andinomics Logo"
+                class="login-logo">
+
+
+            <!-- Judul -->
+
+            <h1>Andinomics</h1>
+
+            <p class="login-subtitle">
+                Smart Financial Dashboard
+            </p>
+
+
+            <!-- =================================
+                 LOGIN FORM
+            ================================== -->
+
+            <form
+                id="loginForm"
+                autocomplete="on">
+
+
+                <!-- Email -->
+
+                <div class="input-group">
+
+                    <label for="email">
+                        📧 Email
+                    </label>
+
+                    <input
+                        type="email"
+                        id="email"
+                        name="email"
+                        placeholder="Masukkan email"
+                        autocomplete="email"
+                        required>
+
+                </div>
+
+
+                <!-- Password -->
+
+                <div class="input-group">
+
+                    <label for="password">
+                        🔒 Password
+                    </label>
+
+
+                    <div class="password-wrapper">
+
+                        <input
+                            type="password"
+                            id="password"
+                            name="password"
+                            placeholder="Masukkan password"
+                            autocomplete="current-password"
+                            required>
+
+
+                        <button
+                            type="button"
+                            id="togglePassword"
+                            class="toggle-password"
+                            title="Lihat Password"
+                            aria-label="Lihat Password">
+
+                            👁️
+
+                        </button>
+
+                    </div>
+
+                </div>
+
+
+                <!-- Pesan Login -->
+
+                <div
+                    id="loginMessage"
+                    class="login-message"
+                    role="alert"
+                    aria-live="polite">
+                </div>
+
+
+                <!-- Remember Me -->
+
+                <div class="remember">
+
+
+                    <label class="remember-label">
+
+                        <input
+                            type="checkbox"
+                            id="rememberMe"
+                            name="rememberMe">
+
+                        <span>
+                            Remember Me
+                        </span>
+
+                    </label>
+
+
+                    <a
+                        href="#"
+                        class="forgot-password">
+
+                        Forgot Password?
+
+                    </a>
+
+                </div>
+
+
+                <!-- Tombol Login -->
+
+                <button
+                    type="submit"
+                    id="loginBtn"
+                    class="login-button">
+
+                    Login
+
+                </button>
+
+
+            </form>
+
+
+            <!-- =================================
+                 FOOTER
+            ================================== -->
+
+            <footer class="login-footer">
+
+                <div>
+                    © 2026 Andinomics
+                </div>
+
+                <div>
+                    Version 0.4 Beta
+                </div>
+
+            </footer>
+
+
+        </section>
+
+    </main>
+
+
+    <!-- =========================================
+         JAVASCRIPT
+    ========================================== -->
+
+    <script src="auth.js"></script>
+
+    <script src="login.js"></script>
+
+
+</body>
+
+</html>
