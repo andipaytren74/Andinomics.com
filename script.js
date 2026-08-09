@@ -28,16 +28,6 @@
        1. STATE
        ========================================================== */
 
-    /**
-     * @typedef {Object} Transaction
-     * @property {string} id
-     * @property {string} description
-     * @property {"Pemasukan"|"Pengeluaran"} type
-     * @property {string} category
-     * @property {number} amount
-     * @property {string} date - format YYYY-MM-DD
-     */
-
     const State = {
         transactions: [],
         editingId: null,
@@ -50,36 +40,16 @@
        ========================================================== */
 
     const CONFIG = Object.freeze({
-
-        STORAGE_KEY:
-            "andinomics-transactions",
-
-        TOAST_DURATION_MS:
-            3000,
-
-        DESCRIPTION_MAX_LENGTH:
-            80,
-
-        DATE_PATTERN:
-            /^\d{4}-\d{2}-\d{2}$/,
-
-        CHART_FALLBACK_COLORS:
-            Object.freeze({
-
-                success:
-                    "#2ecc71",
-
-                danger:
-                    "#ff5d5d",
-
-                textMuted:
-                    "#9eb3a6",
-
-                grid:
-                    "rgba(255, 255, 255, 0.06)",
-
-            }),
-
+        STORAGE_KEY: "andinomics-transactions",
+        TOAST_DURATION_MS: 3000,
+        DESCRIPTION_MAX_LENGTH: 80,
+        DATE_PATTERN: /^\d{4}-\d{2}-\d{2}$/,
+        CHART_FALLBACK_COLORS: Object.freeze({
+            success: "#2ecc71",
+            danger: "#ff5d5d",
+            textMuted: "#9eb3a6",
+            grid: "rgba(255, 255, 255, 0.06)",
+        }),
     });
 
 
@@ -88,117 +58,28 @@
        ========================================================== */
 
     const dom = {
-
-        form:
-            document.getElementById(
-                "transactionForm"
-            ),
-
-        transactionId:
-            document.getElementById(
-                "transactionId"
-            ),
-
-        description:
-            document.getElementById(
-                "description"
-            ),
-
-        type:
-            document.getElementById(
-                "type"
-            ),
-
-        category:
-            document.getElementById(
-                "category"
-            ),
-
-        amount:
-            document.getElementById(
-                "amount"
-            ),
-
-        date:
-            document.getElementById(
-                "date"
-            ),
-
-        submitBtn:
-            document.getElementById(
-                "submitBtn"
-            ),
-
-        submitBtnLabel:
-            document.getElementById(
-                "submitBtnLabel"
-            ),
-
-        cancelEditBtn:
-            document.getElementById(
-                "cancelEditBtn"
-            ),
-
-        table:
-            document.getElementById(
-                "transactionTable"
-            ),
-
-        searchInput:
-            document.getElementById(
-                "searchTransaction"
-            ),
-
-        saldo:
-            document.getElementById(
-                "saldo"
-            ),
-
-        masuk:
-            document.getElementById(
-                "masuk"
-            ),
-
-        keluar:
-            document.getElementById(
-                "keluar"
-            ),
-
-        totalTransaksi:
-            document.getElementById(
-                "transaksi"
-            ),
-
-        kategoriTerbesar:
-            document.getElementById(
-                "kategoriTerbesar"
-            ),
-
-        transaksiTerakhir:
-            document.getElementById(
-                "transaksiTerakhir"
-            ),
-
-        todayDate:
-            document.getElementById(
-                "today-date"
-            ),
-
-        footerYear:
-            document.getElementById(
-                "footer-year"
-            ),
-
-        toastContainer:
-            document.getElementById(
-                "toastContainer"
-            ),
-
-        chartCanvas:
-            document.getElementById(
-                "cashflowChart"
-            ),
-
+        form: document.getElementById("transactionForm"),
+        transactionId: document.getElementById("transactionId"),
+        description: document.getElementById("description"),
+        type: document.getElementById("type"),
+        category: document.getElementById("category"),
+        amount: document.getElementById("amount"),
+        date: document.getElementById("date"),
+        submitBtn: document.getElementById("submitBtn"),
+        submitBtnLabel: document.getElementById("submitBtnLabel"),
+        cancelEditBtn: document.getElementById("cancelEditBtn"),
+        table: document.getElementById("transactionTable"),
+        searchInput: document.getElementById("searchTransaction"),
+        saldo: document.getElementById("saldo"),
+        masuk: document.getElementById("masuk"),
+        keluar: document.getElementById("keluar"),
+        totalTransaksi: document.getElementById("transaksi"),
+        kategoriTerbesar: document.getElementById("kategoriTerbesar"),
+        transaksiTerakhir: document.getElementById("transaksiTerakhir"),
+        todayDate: document.getElementById("today-date"),
+        footerYear: document.getElementById("footer-year"),
+        toastContainer: document.getElementById("toastContainer"),
+        chartCanvas: document.getElementById("cashflowChart"),
     };
 
 
@@ -207,132 +88,52 @@
        ========================================================== */
 
     const Utils = {
-
         formatRupiah(number) {
-
-            return new Intl.NumberFormat(
-                "id-ID",
-                {
-                    style:
-                        "currency",
-
-                    currency:
-                        "IDR",
-
-                    maximumFractionDigits:
-                        0,
-                }
-            ).format(
-                Number.isFinite(number)
-                    ? number
-                    : 0
-            );
-
+            return new Intl.NumberFormat("id-ID", {
+                style: "currency",
+                currency: "IDR",
+                maximumFractionDigits: 0,
+            }).format(Number.isFinite(number) ? number : 0);
         },
-
 
         formatDateLong(date) {
-
-            return new Intl.DateTimeFormat(
-                "id-ID",
-                {
-                    weekday:
-                        "long",
-
-                    day:
-                        "2-digit",
-
-                    month:
-                        "long",
-
-                    year:
-                        "numeric",
-                }
-            ).format(date);
-
+            return new Intl.DateTimeFormat("id-ID", {
+                weekday: "long",
+                day: "2-digit",
+                month: "long",
+                year: "numeric",
+            }).format(date);
         },
-
 
         formatDateShort(isoDate) {
-
-            const parsed =
-                new Date(
-                    `${isoDate}T00:00:00`
-                );
-
-            if (
-                Number.isNaN(
-                    parsed.getTime()
-                )
-            ) {
+            const parsed = new Date(`${isoDate}T00:00:00`);
+            if (Number.isNaN(parsed.getTime())) {
                 return isoDate;
             }
-
-            return new Intl.DateTimeFormat(
-                "id-ID",
-                {
-                    day:
-                        "2-digit",
-
-                    month:
-                        "short",
-
-                    year:
-                        "numeric",
-                }
-            ).format(parsed);
-
+            return new Intl.DateTimeFormat("id-ID", {
+                day: "2-digit",
+                month: "short",
+                year: "numeric",
+            }).format(parsed);
         },
-
 
         escapeHtml(value) {
-
-            const div =
-                document.createElement(
-                    "div"
-                );
-
-            div.textContent =
-                String(value);
-
+            const div = document.createElement("div");
+            div.textContent = String(value);
             return div.innerHTML;
-
         },
-
 
         generateId() {
-
-            return (
-                crypto.randomUUID &&
-                crypto.randomUUID()
-            ) ||
-                `txn-${Date.now()}-${Math.random()
-                    .toString(16)
-                    .slice(2)}`;
-
+            return (crypto.randomUUID && crypto.randomUUID()) ||
+                `txn-${Date.now()}-${Math.random().toString(16).slice(2)}`;
         },
-
 
         todayIso() {
-
-            const now =
-                new Date();
-
-            const offset =
-                now.getTimezoneOffset();
-
-            const local =
-                new Date(
-                    now.getTime() -
-                    offset * 60 * 1000
-                );
-
-            return local
-                .toISOString()
-                .slice(0, 10);
-
+            const now = new Date();
+            const offset = now.getTimezoneOffset();
+            const local = new Date(now.getTime() - offset * 60 * 1000);
+            return local.toISOString().slice(0, 10);
         },
-
     };
 
 
@@ -341,249 +142,92 @@
        ========================================================== */
 
     const Storage = {
-
         _isValidRecord(record) {
-
             return Boolean(
-
                 record &&
-
-                typeof record.id ===
-                    "string" &&
-
-                typeof record.description ===
-                    "string" &&
-
-                (
-                    record.type ===
-                        "Pemasukan" ||
-
-                    record.type ===
-                        "Pengeluaran"
-                ) &&
-
-                typeof record.category ===
-                    "string" &&
-
-                Number.isFinite(
-                    record.amount
-                ) &&
-
-                typeof record.date ===
-                    "string"
-
+                typeof record.id === "string" &&
+                typeof record.description === "string" &&
+                (record.type === "Pemasukan" || record.type === "Pengeluaran") &&
+                typeof record.category === "string" &&
+                Number.isFinite(record.amount) &&
+                typeof record.date === "string"
             );
-
         },
 
-
         load() {
-
             try {
-
-                const raw =
-                    localStorage.getItem(
-                        CONFIG.STORAGE_KEY
-                    );
-
+                const raw = localStorage.getItem(CONFIG.STORAGE_KEY);
                 if (!raw) {
                     return [];
                 }
-
-                const parsed =
-                    JSON.parse(raw);
-
-                if (
-                    !Array.isArray(parsed)
-                ) {
-
-                    throw new Error(
-                        "Data tersimpan rusak: bukan berupa array."
-                    );
-
+                const parsed = JSON.parse(raw);
+                if (!Array.isArray(parsed)) {
+                    throw new Error("Data tersimpan rusak: bukan berupa array.");
                 }
-
-                const valid =
-                    parsed.filter(
-                        Storage._isValidRecord
-                    );
-
-                if (
-                    valid.length !==
-                    parsed.length
-                ) {
-
-                    console.warn(
-                        `[Storage.load] ${
-                            parsed.length -
-                            valid.length
-                        } data tidak valid diabaikan.`
-                    );
-
+                const valid = parsed.filter(Storage._isValidRecord);
+                if (valid.length !== parsed.length) {
+                    console.warn(`[Storage.load] ${parsed.length - valid.length} data tidak valid diabaikan.`);
                 }
-
                 return valid;
-
             } catch (error) {
-
-                console.error(
-                    "[Storage.load] Gagal memuat data dari Local Storage:",
-                    error
-                );
-
+                console.error("[Storage.load] Gagal memuat data dari Local Storage:", error);
                 return [];
-
             }
-
         },
-
 
         save(transactions) {
-
             try {
-
-                localStorage.setItem(
-
-                    CONFIG.STORAGE_KEY,
-
-                    JSON.stringify(
-                        transactions
-                    )
-
-                );
-
+                localStorage.setItem(CONFIG.STORAGE_KEY, JSON.stringify(transactions));
                 return true;
-
             } catch (error) {
-
-                console.error(
-                    "[Storage.save] Gagal menyimpan data ke Local Storage:",
-                    error
-                );
-
+                console.error("[Storage.save] Gagal menyimpan data ke Local Storage:", error);
                 return false;
-
             }
-
         },
-
 
         clear() {
-
             try {
-
-                localStorage.removeItem(
-                    CONFIG.STORAGE_KEY
-                );
-
+                localStorage.removeItem(CONFIG.STORAGE_KEY);
                 return true;
-
             } catch (error) {
-
-                console.error(
-                    "[Storage.clear] Gagal menghapus Local Storage:",
-                    error
-                );
-
+                console.error("[Storage.clear] Gagal menghapus Local Storage:", error);
                 return false;
-
             }
-
         },
-
 
         exists() {
-
             try {
-
-                return (
-                    localStorage.getItem(
-                        CONFIG.STORAGE_KEY
-                    ) !== null
-                );
-
+                return localStorage.getItem(CONFIG.STORAGE_KEY) !== null;
             } catch (error) {
-
-                console.error(
-                    "[Storage.exists] Gagal memeriksa Local Storage:",
-                    error
-                );
-
+                console.error("[Storage.exists] Gagal memeriksa Local Storage:", error);
                 return false;
-
             }
-
         },
-
 
         export() {
-
             try {
-
-                return JSON.stringify(
-                    State.transactions,
-                    null,
-                    2
-                );
-
+                return JSON.stringify(State.transactions, null, 2);
             } catch (error) {
-
-                console.error(
-                    "[Storage.export] Gagal mengekspor data:",
-                    error
-                );
-
+                console.error("[Storage.export] Gagal mengekspor data:", error);
                 return null;
-
             }
-
         },
-
 
         import(jsonString) {
-
             try {
-
-                const parsed =
-                    JSON.parse(
-                        jsonString
-                    );
-
-                if (
-                    !Array.isArray(parsed)
-                ) {
-
-                    throw new Error(
-                        "Format data impor tidak valid."
-                    );
-
+                const parsed = JSON.parse(jsonString);
+                if (!Array.isArray(parsed)) {
+                    throw new Error("Format data impor tidak valid.");
                 }
-
-                const valid =
-                    parsed.filter(
-                        Storage._isValidRecord
-                    );
-
-                State.transactions =
-                    valid;
-
+                const valid = parsed.filter(Storage._isValidRecord);
+                State.transactions = valid;
                 Storage.save(valid);
-
                 return true;
-
             } catch (error) {
-
-                console.error(
-                    "[Storage.import] Gagal mengimpor data:",
-                    error
-                );
-
+                console.error("[Storage.import] Gagal mengimpor data:", error);
                 return false;
-
             }
-
         },
-
     };
 
 
@@ -592,196 +236,60 @@
        ========================================================== */
 
     const Validation = {
-
-        errors:
-            new Map(),
-
+        errors: new Map(),
 
         clear() {
-
             this.errors.clear();
-
-            document
-                .querySelectorAll(
-                    ".form-error"
-                )
-                .forEach(
-                    (el) =>
-                        (el.textContent = "")
-                );
-
-            [
-                dom.description,
-                dom.amount,
-                dom.date
-            ].forEach(
-                (el) =>
-                    el?.removeAttribute(
-                        "aria-invalid"
-                    )
-            );
-
+            document.querySelectorAll(".form-error").forEach((el) => (el.textContent = ""));
+            [dom.description, dom.amount, dom.date].forEach((el) => el?.removeAttribute("aria-invalid"));
         },
 
-
-        setError(
-            field,
-            message
-        ) {
-
-            this.errors.set(
-                field,
-                message
-            );
-
-            const el =
-                document.getElementById(
-                    `${field}-error`
-                );
-
-            const input =
-                dom[field];
-
+        setError(field, message) {
+            this.errors.set(field, message);
+            const el = document.getElementById(`${field}-error`);
+            const input = dom[field];
             if (el) {
-                el.textContent =
-                    message;
+                el.textContent = message;
             }
-
             if (input) {
-                input.setAttribute(
-                    "aria-invalid",
-                    "true"
-                );
+                input.setAttribute("aria-invalid", "true");
             }
-
         },
 
-
-        validateDescription(
-            description
-        ) {
-
-            const trimmed =
-                (description ?? "")
-                    .trim();
-
-            if (
-                trimmed.length ===
-                0
-            ) {
-
-                this.setError(
-                    "description",
-                    "Keterangan wajib diisi."
-                );
-
-            } else if (
-                trimmed.length >
-                CONFIG.DESCRIPTION_MAX_LENGTH
-            ) {
-
-                this.setError(
-                    "description",
-                    `Keterangan maksimal ${CONFIG.DESCRIPTION_MAX_LENGTH} karakter.`
-                );
-
+        validateDescription(description) {
+            const trimmed = (description ?? "").trim();
+            if (trimmed.length === 0) {
+                this.setError("description", "Keterangan wajib diisi.");
+            } else if (trimmed.length > CONFIG.DESCRIPTION_MAX_LENGTH) {
+                this.setError("description", `Keterangan maksimal ${CONFIG.DESCRIPTION_MAX_LENGTH} karakter.`);
             }
-
         },
-
 
         validateAmount(amount) {
-
-            if (
-                amount === "" ||
-                amount === null ||
-                amount === undefined ||
-                !Number.isFinite(amount)
-            ) {
-
-                this.setError(
-                    "amount",
-                    "Nominal wajib diisi dengan angka yang valid."
-                );
-
-            } else if (
-                amount < 0
-            ) {
-
-                this.setError(
-                    "amount",
-                    "Nominal tidak boleh negatif."
-                );
-
-            } else if (
-                amount === 0
-            ) {
-
-                this.setError(
-                    "amount",
-                    "Nominal tidak boleh nol."
-                );
-
+            if (amount === "" || amount === null || amount === undefined || !Number.isFinite(amount)) {
+                this.setError("amount", "Nominal wajib diisi dengan angka yang valid.");
+            } else if (amount < 0) {
+                this.setError("amount", "Nominal tidak boleh negatif.");
+            } else if (amount === 0) {
+                this.setError("amount", "Nominal tidak boleh nol.");
             }
-
         },
-
 
         validateDate(date) {
-
             if (!date) {
-
-                this.setError(
-                    "date",
-                    "Tanggal wajib diisi."
-                );
-
-            } else if (
-                !CONFIG.DATE_PATTERN.test(
-                    date
-                ) ||
-                Number.isNaN(
-                    new Date(date).getTime()
-                )
-            ) {
-
-                this.setError(
-                    "date",
-                    "Format tanggal tidak valid."
-                );
-
+                this.setError("date", "Tanggal wajib diisi.");
+            } else if (!CONFIG.DATE_PATTERN.test(date) || Number.isNaN(new Date(date).getTime())) {
+                this.setError("date", "Format tanggal tidak valid.");
             }
-
         },
 
-
-        validate({
-            description,
-            amount,
-            date
-        }) {
-
+        validate({ description, amount, date }) {
             this.clear();
-
-            this.validateDescription(
-                description
-            );
-
-            this.validateAmount(
-                amount
-            );
-
-            this.validateDate(
-                date
-            );
-
-            return (
-                this.errors.size ===
-                0
-            );
-
+            this.validateDescription(description);
+            this.validateAmount(amount);
+            this.validateDate(date);
+            return this.errors.size === 0;
         },
-
     };
 
 
@@ -790,155 +298,48 @@
        ========================================================== */
 
     const TransactionEngine = {
-
-        createTransaction(
-            payload
-        ) {
-
-            return {
-
-                id:
-                    Utils.generateId(),
-
-                ...payload
-
-            };
-
+        createTransaction(payload) {
+            return { id: Utils.generateId(), ...payload };
         },
 
-
-        addTransaction(
-            payload
-        ) {
-
-            const transaction =
-                this.createTransaction(
-                    payload
-                );
-
-            State.transactions.push(
-                transaction
-            );
-
+        addTransaction(payload) {
+            const transaction = this.createTransaction(payload);
+            State.transactions.push(transaction);
             return transaction;
-
         },
 
-
-        updateTransaction(
-            id,
-            payload
-        ) {
-
-            const index =
-                State.transactions.findIndex(
-                    (t) =>
-                        t.id === id
-                );
-
-            if (
-                index === -1
-            ) {
-
+        updateTransaction(id, payload) {
+            const index = State.transactions.findIndex((t) => t.id === id);
+            if (index === -1) {
                 return null;
-
             }
-
-            State.transactions[
-                index
-            ] = {
-
-                ...State.transactions[
-                    index
-                ],
-
-                ...payload
-
-            };
-
-            return State.transactions[
-                index
-            ];
-
+            State.transactions[index] = { ...State.transactions[index], ...payload };
+            return State.transactions[index];
         },
-
 
         deleteTransaction(id) {
-
-            const before =
-                State.transactions.length;
-
-            State.transactions =
-                State.transactions.filter(
-                    (t) =>
-                        t.id !== id
-                );
-
-            return (
-                State.transactions.length !==
-                before
-            );
-
+            const before = State.transactions.length;
+            State.transactions = State.transactions.filter((t) => t.id !== id);
+            return State.transactions.length !== before;
         },
-
 
         findTransaction(id) {
-
-            return (
-                State.transactions.find(
-                    (t) =>
-                        t.id === id
-                ) ?? null
-            );
-
+            return State.transactions.find((t) => t.id === id) ?? null;
         },
-
 
         sortTransaction(list) {
-
-            return [
-                ...list
-            ].sort(
-                (a, b) =>
-                    a.date <
-                    b.date
-                        ? 1
-                        : -1
-            );
-
+            return [...list].sort((a, b) => (a.date < b.date ? 1 : -1));
         },
 
-
-        filterTransaction(
-            list,
-            keyword
-        ) {
-
-            const trimmed =
-                (keyword ?? "")
-                    .trim()
-                    .toLowerCase();
-
+        filterTransaction(list, keyword) {
+            const trimmed = (keyword ?? "").trim().toLowerCase();
             if (!trimmed) {
                 return list;
             }
-
-            return list.filter(
-                (item) =>
-                    [
-                        item.description,
-                        item.category,
-                        item.type
-                    ]
-                        .join(" ")
-                        .toLowerCase()
-                        .includes(
-                            trimmed
-                        )
+            return list.filter((item) =>
+                [item.description, item.category, item.type].join(" ").toLowerCase().includes(trimmed)
             );
-
         },
-
     };
 
 
@@ -947,303 +348,94 @@
        ========================================================== */
 
     const RenderEngine = {
-
         renderDashboard() {
-
             try {
+                const summary = DashboardEngine.getSummary();
 
-                const summary =
-                    DashboardEngine
-                        .getSummary();
+                dom.saldo.textContent = Utils.formatRupiah(summary.saldo);
+                dom.masuk.textContent = Utils.formatRupiah(summary.pemasukan);
+                dom.keluar.textContent = Utils.formatRupiah(summary.pengeluaran);
+                dom.totalTransaksi.textContent = String(summary.jumlahTransaksi);
 
-
-                dom.saldo.textContent =
-                    Utils.formatRupiah(
-                        summary.saldo
-                    );
-
-
-                dom.masuk.textContent =
-                    Utils.formatRupiah(
-                        summary.pemasukan
-                    );
-
-
-                dom.keluar.textContent =
-                    Utils.formatRupiah(
-                        summary.pengeluaran
-                    );
-
-
-                dom.totalTransaksi
-                    .textContent =
-                    String(
-                        summary.jumlahTransaksi
-                    );
-
-
-                if (
-                    dom.kategoriTerbesar
-                ) {
-
-                    dom.kategoriTerbesar
-                        .textContent =
-                        summary.kategoriTerbesar;
-
+                if (dom.kategoriTerbesar) {
+                    dom.kategoriTerbesar.textContent = summary.kategoriTerbesar;
                 }
 
-
-                if (
-                    dom.transaksiTerakhir
-                ) {
-
-                    dom.transaksiTerakhir
-                        .textContent =
-                        summary.transaksiTerakhir
-
-                            ? `${summary.transaksiTerakhir.description} — ${Utils.formatRupiah(summary.transaksiTerakhir.amount)}`
-
-                            : "-";
-
+                if (dom.transaksiTerakhir) {
+                    dom.transaksiTerakhir.textContent = summary.transaksiTerakhir
+                        ? `${summary.transaksiTerakhir.description} — ${Utils.formatRupiah(summary.transaksiTerakhir.amount)}`
+                        : "-";
                 }
-
             } catch (error) {
-
-                console.error(
-                    "[RenderEngine.renderDashboard] Gagal merender dashboard:",
-                    error
-                );
-
+                console.error("[RenderEngine.renderDashboard] Gagal merender dashboard:", error);
             }
-
         },
 
-
-        renderTable(
-            filterText = ""
-        ) {
-
+        renderTable(filterText = "") {
             try {
+                const keyword = filterText.trim();
+                const filtered = TransactionEngine.filterTransaction(State.transactions, keyword);
 
-                const keyword =
-                    filterText.trim();
-
-                const filtered =
-                    TransactionEngine
-                        .filterTransaction(
-                            State.transactions,
-                            keyword
-                        );
-
-
-                if (
-                    filtered.length ===
-                    0
-                ) {
-
+                if (filtered.length === 0) {
                     dom.table.innerHTML = `
-
                         <tr>
-
-                            <td
-                                colspan="6"
-                                class="empty-data">
-
-                                <i
-                                    class="fa-solid fa-folder-open"
-                                    aria-hidden="true">
-                                </i>
-
-                                ${
-                                    keyword
-                                        ? "Tidak ada transaksi yang cocok."
-                                        : "Belum ada transaksi."
-                                }
-
+                            <td colspan="6" class="empty-data">
+                                <i class="fa-solid fa-folder-open" aria-hidden="true"></i>
+                                ${keyword ? "Tidak ada transaksi yang cocok." : "Belum ada transaksi."}
                             </td>
-
                         </tr>
-
                     `;
-
                     return;
-
                 }
 
-
-                const sorted =
-                    TransactionEngine
-                        .sortTransaction(
-                            filtered
-                        );
-
-
-                dom.table.innerHTML =
-                    sorted
-                        .map(
-                            RenderEngine._buildRow
-                        )
-                        .join("");
-
+                const sorted = TransactionEngine.sortTransaction(filtered);
+                dom.table.innerHTML = sorted.map(RenderEngine._buildRow).join("");
             } catch (error) {
-
-                console.error(
-                    "[RenderEngine.renderTable] Gagal merender tabel:",
-                    error
-                );
-
+                console.error("[RenderEngine.renderTable] Gagal merender tabel:", error);
             }
-
         },
-
 
         _buildRow(item) {
-
-            const badgeClass =
-                item.type === "Pemasukan"
-                    ? "badge-income"
-                    : "badge-expense";
-
-
-            const amountClass =
-                item.type === "Pemasukan"
-                    ? "amount-income"
-                    : "amount-expense";
-
-
-            const sign =
-                item.type === "Pemasukan"
-                    ? "+"
-                    : "−";
-
-
-            const safeId =
-                Utils.escapeHtml(
-                    item.id
-                );
-
-
-            const safeDescription =
-                Utils.escapeHtml(
-                    item.description
-                );
-
+            const badgeClass = item.type === "Pemasukan" ? "badge-income" : "badge-expense";
+            const amountClass = item.type === "Pemasukan" ? "amount-income" : "amount-expense";
+            const sign = item.type === "Pemasukan" ? "+" : "−";
+            const safeId = Utils.escapeHtml(item.id);
+            const safeDescription = Utils.escapeHtml(item.description);
 
             return `
-
-                <tr
-                    data-id="${safeId}">
-
+                <tr data-id="${safeId}">
+                    <td>${Utils.escapeHtml(Utils.formatDateShort(item.date))}</td>
+                    <td>${safeDescription}</td>
+                    <td>${Utils.escapeHtml(item.category)}</td>
                     <td>
-                        ${Utils.escapeHtml(
-                            Utils.formatDateShort(
-                                item.date
-                            )
-                        )}
+                        <span class="badge ${badgeClass}">${Utils.escapeHtml(item.type)}</span>
                     </td>
-
+                    <td class="${amountClass}">
+                        ${sign}${Utils.escapeHtml(Utils.formatRupiah(item.amount))}
+                    </td>
                     <td>
-                        ${safeDescription}
-                    </td>
-
-                    <td>
-                        ${Utils.escapeHtml(
-                            item.category
-                        )}
-                    </td>
-
-                    <td>
-
-                        <span
-                            class="badge ${badgeClass}">
-
-                            ${Utils.escapeHtml(
-                                item.type
-                            )}
-
-                        </span>
-
-                    </td>
-
-                    <td
-                        class="${amountClass}">
-
-                        ${sign}
-
-                        ${Utils.escapeHtml(
-                            Utils.formatRupiah(
-                                item.amount
-                            )
-                        )}
-
-                    </td>
-
-                    <td>
-
-                        <div
-                            class="action-group">
-
-                            <button
-                                type="button"
-                                class="edit-btn"
-                                data-action="edit"
-                                data-id="${safeId}"
-                                aria-label="Edit transaksi ${safeDescription}">
-
-                                <i
-                                    class="fa-solid fa-pen"
-                                    aria-hidden="true">
-                                </i>
-
+                        <div class="action-group">
+                            <button type="button" class="edit-btn" data-action="edit" data-id="${safeId}" aria-label="Edit transaksi ${safeDescription}">
+                                <i class="fa-solid fa-pen" aria-hidden="true"></i>
                             </button>
-
-
-                            <button
-                                type="button"
-                                class="delete-btn"
-                                data-action="delete"
-                                data-id="${safeId}"
-                                aria-label="Hapus transaksi ${safeDescription}">
-
-                                <i
-                                    class="fa-solid fa-trash"
-                                    aria-hidden="true">
-                                </i>
-
+                            <button type="button" class="delete-btn" data-action="delete" data-id="${safeId}" aria-label="Hapus transaksi ${safeDescription}">
+                                <i class="fa-solid fa-trash" aria-hidden="true"></i>
                             </button>
-
                         </div>
-
                     </td>
-
                 </tr>
-
             `;
-
         },
-
 
         renderChart() {
-
             ChartEngine.update();
-
         },
 
-
-        renderAll(
-            filterText = ""
-        ) {
-
+        renderAll(filterText = "") {
             this.renderDashboard();
-
-            this.renderTable(
-                filterText
-            );
-
+            this.renderTable(filterText);
             this.renderChart();
-
         },
-
     };
 
 
@@ -1252,391 +444,119 @@
        ========================================================== */
 
     const ChartEngine = {
+        _buildDatasets(transactions) {
+            const totalsByDate = new Map();
 
-        _buildDatasets(
-            transactions
-        ) {
-
-            const totalsByDate =
-                new Map();
-
-
-            transactions.forEach(
-                (item) => {
-
-                    if (
-                        !totalsByDate.has(
-                            item.date
-                        )
-                    ) {
-
-                        totalsByDate.set(
-                            item.date,
-                            {
-                                income: 0,
-                                expense: 0
-                            }
-                        );
-
-                    }
-
-
-                    const entry =
-                        totalsByDate.get(
-                            item.date
-                        );
-
-
-                    if (
-                        item.type ===
-                        "Pemasukan"
-                    ) {
-
-                        entry.income +=
-                            item.amount;
-
-                    } else {
-
-                        entry.expense +=
-                            item.amount;
-
-                    }
-
+            transactions.forEach((item) => {
+                if (!totalsByDate.has(item.date)) {
+                    totalsByDate.set(item.date, { income: 0, expense: 0 });
                 }
-            );
+                const entry = totalsByDate.get(item.date);
+                if (item.type === "Pemasukan") {
+                    entry.income += item.amount;
+                } else {
+                    entry.expense += item.amount;
+                }
+            });
 
-
-            const sortedDates =
-                [
-                    ...totalsByDate.keys()
-                ].sort();
-
+            const sortedDates = [...totalsByDate.keys()].sort();
 
             return {
-
-                labels:
-                    sortedDates.map(
-                        (d) =>
-                            Utils.formatDateShort(
-                                d
-                            )
-                    ),
-
-                incomeData:
-                    sortedDates.map(
-                        (d) =>
-                            totalsByDate.get(
-                                d
-                            ).income
-                    ),
-
-                expenseData:
-                    sortedDates.map(
-                        (d) =>
-                            totalsByDate.get(
-                                d
-                            ).expense
-                    ),
-
+                labels: sortedDates.map((d) => Utils.formatDateShort(d)),
+                incomeData: sortedDates.map((d) => totalsByDate.get(d).income),
+                expenseData: sortedDates.map((d) => totalsByDate.get(d).expense),
             };
-
         },
-
 
         _getThemeColors() {
-
-            const styles =
-                getComputedStyle(
-                    document.documentElement
-                );
-
-
-            const fallback =
-                CONFIG.CHART_FALLBACK_COLORS;
-
+            const styles = getComputedStyle(document.documentElement);
+            const fallback = CONFIG.CHART_FALLBACK_COLORS;
 
             return {
-
-                success:
-                    styles.getPropertyValue(
-                        "--success"
-                    ).trim() ||
-                    fallback.success,
-
-                danger:
-                    styles.getPropertyValue(
-                        "--danger"
-                    ).trim() ||
-                    fallback.danger,
-
-                text:
-                    styles.getPropertyValue(
-                        "--text-muted"
-                    ).trim() ||
-                    fallback.textMuted,
-
-                grid:
-                    fallback.grid,
-
+                success: styles.getPropertyValue("--success").trim() || fallback.success,
+                danger: styles.getPropertyValue("--danger").trim() || fallback.danger,
+                text: styles.getPropertyValue("--text-muted").trim() || fallback.textMuted,
+                grid: fallback.grid,
             };
-
         },
-
 
         update() {
-
-            if (
-                typeof Chart ===
-                    "undefined" ||
-                !dom.chartCanvas
-            ) {
-
+            if (typeof Chart === "undefined" || !dom.chartCanvas) {
                 return;
-
             }
-
 
             try {
-
-                const {
-                    labels,
-                    incomeData,
-                    expenseData
-                } =
-                    this._buildDatasets(
-                        State.transactions
-                    );
-
-
-                const colors =
-                    this._getThemeColors();
-
+                const { labels, incomeData, expenseData } = this._buildDatasets(State.transactions);
+                const colors = this._getThemeColors();
 
                 const chartData = {
-
-                    labels:
-                        labels.length
-                            ? labels
-                            : [
-                                "Belum ada data"
-                            ],
-
+                    labels: labels.length ? labels : ["Belum ada data"],
                     datasets: [
-
                         {
-
-                            label:
-                                "Pemasukan",
-
-                            data:
-                                labels.length
-                                    ? incomeData
-                                    : [0],
-
-                            borderColor:
-                                colors.success,
-
-                            backgroundColor:
-                                `${colors.success}33`,
-
-                            tension:
-                                0.35,
-
-                            fill:
-                                true,
-
-                            pointRadius:
-                                3,
-
+                            label: "Pemasukan",
+                            data: labels.length ? incomeData : [0],
+                            borderColor: colors.success,
+                            backgroundColor: `${colors.success}33`,
+                            tension: 0.35,
+                            fill: true,
+                            pointRadius: 3,
                         },
-
-
                         {
-
-                            label:
-                                "Pengeluaran",
-
-                            data:
-                                labels.length
-                                    ? expenseData
-                                    : [0],
-
-                            borderColor:
-                                colors.danger,
-
-                            backgroundColor:
-                                `${colors.danger}33`,
-
-                            tension:
-                                0.35,
-
-                            fill:
-                                true,
-
-                            pointRadius:
-                                3,
-
-                        }
-
-                    ]
-
+                            label: "Pengeluaran",
+                            data: labels.length ? expenseData : [0],
+                            borderColor: colors.danger,
+                            backgroundColor: `${colors.danger}33`,
+                            tension: 0.35,
+                            fill: true,
+                            pointRadius: 3,
+                        },
+                    ],
                 };
-
 
                 const options = {
-
-                    responsive:
-                        true,
-
-                    maintainAspectRatio:
-                        false,
-
-                    interaction: {
-
-                        mode:
-                            "index",
-
-                        intersect:
-                            false
-
-                    },
-
-
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    interaction: { mode: "index", intersect: false },
                     plugins: {
-
-                        legend: {
-
-                            labels: {
-
-                                color:
-                                    colors.text
-
-                            }
-
-                        },
-
-
+                        legend: { labels: { color: colors.text } },
                         tooltip: {
-
                             callbacks: {
-
-                                label(
-                                    context
-                                ) {
-
+                                label(context) {
                                     return `${context.dataset.label}: ${Utils.formatRupiah(context.parsed.y)}`;
-
-                                }
-
-                            }
-
-                        }
-
-                    },
-
-
-                    scales: {
-
-                        x: {
-
-                            ticks: {
-
-                                color:
-                                    colors.text
-
+                                },
                             },
-
-                            grid: {
-
-                                color:
-                                    colors.grid
-
-                            }
-
                         },
-
-
+                    },
+                    scales: {
+                        x: {
+                            ticks: { color: colors.text },
+                            grid: { color: colors.grid },
+                        },
                         y: {
-
                             ticks: {
-
-                                color:
-                                    colors.text,
-
-                                callback:
-                                    (value) =>
-                                        Utils.formatRupiah(
-                                            value
-                                        )
-
+                                color: colors.text,
+                                callback: (value) => Utils.formatRupiah(value),
                             },
-
-                            grid: {
-
-                                color:
-                                    colors.grid
-
-                            }
-
-                        }
-
-                    }
-
+                            grid: { color: colors.grid },
+                        },
+                    },
                 };
 
-
-                if (
-                    State.chartInstance
-                ) {
-
-                    State.chartInstance
-                        .data =
-                        chartData;
-
-
-                    State.chartInstance
-                        .options =
-                        options;
-
-
-                    State.chartInstance
-                        .update();
-
+                if (State.chartInstance) {
+                    State.chartInstance.data = chartData;
+                    State.chartInstance.options = options;
+                    State.chartInstance.update();
                 } else {
-
-                    State.chartInstance =
-                        new Chart(
-
-                            dom.chartCanvas,
-
-                            {
-
-                                type:
-                                    "line",
-
-                                data:
-                                    chartData,
-
-                                options:
-                                    options
-
-                            }
-
-                        );
-
+                    State.chartInstance = new Chart(dom.chartCanvas, {
+                        type: "line",
+                        data: chartData,
+                        options: options,
+                    });
                 }
-
             } catch (error) {
-
-                console.error(
-                    "[ChartEngine.update] Gagal memperbarui chart:",
-                    error
-                );
-
+                console.error("[ChartEngine.update] Gagal memperbarui chart:", error);
             }
-
         },
-
     };
 
 
@@ -1645,160 +565,321 @@
        ========================================================== */
 
     const DashboardEngine = {
-
         getSummary() {
+            let totalMasuk = 0;
+            let totalKeluar = 0;
+            const categoryTotals = new Map();
+            let latestTransaction = null;
 
-            let totalMasuk =
-                0;
-
-            let totalKeluar =
-                0;
-
-            const categoryTotals =
-                new Map();
-
-            let latestTransaction =
-                null;
-
-
-            State.transactions.forEach(
-                (item) => {
-
-                    if (
-                        item.type ===
-                        "Pemasukan"
-                    ) {
-
-                        totalMasuk +=
-                            item.amount;
-
-                    } else {
-
-                        totalKeluar +=
-                            item.amount;
-
-                    }
-
-
-                    categoryTotals.set(
-
-                        item.category,
-
-                        (
-                            categoryTotals.get(
-                                item.category
-                            ) || 0
-                        ) +
-                        item.amount
-
-                    );
-
-
-                    if (
-                        !latestTransaction ||
-                        item.date >
-                            latestTransaction.date
-                    ) {
-
-                        latestTransaction =
-                            item;
-
-                    }
-
+            State.transactions.forEach((item) => {
+                if (item.type === "Pemasukan") {
+                    totalMasuk += item.amount;
+                } else {
+                    totalKeluar += item.amount;
                 }
-            );
 
+                categoryTotals.set(item.category, (categoryTotals.get(item.category) || 0) + item.amount);
 
-            let kategoriTerbesar =
-                "-";
-
-            let kategoriTerbesarTotal =
-                0;
-
-
-            categoryTotals.forEach(
-                (
-                    total,
-                    category
-                ) => {
-
-                    if (
-                        total >
-                        kategoriTerbesarTotal
-                    ) {
-
-                        kategoriTerbesar =
-                            category;
-
-                        kategoriTerbesarTotal =
-                            total;
-
-                    }
-
+                if (!latestTransaction || item.date > latestTransaction.date) {
+                    latestTransaction = item;
                 }
-            );
+            });
 
+            let kategoriTerbesar = "-";
+            let kategoriTerbesarTotal = 0;
+
+            categoryTotals.forEach((total, category) => {
+                if (total > kategoriTerbesarTotal) {
+                    kategoriTerbesar = category;
+                    kategoriTerbesarTotal = total;
+                }
+            });
 
             return {
-
-                saldo:
-                    totalMasuk -
-                    totalKeluar,
-
-                pemasukan:
-                    totalMasuk,
-
-                pengeluaran:
-                    totalKeluar,
-
-                jumlahTransaksi:
-                    State.transactions.length,
-
-                kategoriTerbesar:
-                    kategoriTerbesar,
-
-                transaksiTerakhir:
-                    latestTransaction,
-
+                saldo: totalMasuk - totalKeluar,
+                pemasukan: totalMasuk,
+                pengeluaran: totalKeluar,
+                jumlahTransaksi: State.transactions.length,
+                kategoriTerbesar: kategoriTerbesar,
+                transaksiTerakhir: latestTransaction,
             };
-
         },
-
     };
 
 
     /* ==========================================================
        11. EXPORT ENGINE
+       PDF / Excel / CSV
        ========================================================== */
 
     const ExportEngine = {
+        _loadScript(src, globalName) {
+            return new Promise((resolve, reject) => {
+                if (globalName && window[globalName]) {
+                    resolve(window[globalName]);
+                    return;
+                }
+
+                const existing = document.querySelector(`script[src="${src}"]`);
+
+                if (existing) {
+                    existing.addEventListener(
+                        "load",
+                        () => resolve(globalName ? window[globalName] : true),
+                        { once: true }
+                    );
+                    existing.addEventListener(
+                        "error",
+                        () => reject(new Error(`Gagal memuat library: ${src}`)),
+                        { once: true }
+                    );
+                    return;
+                }
+
+                const script = document.createElement("script");
+                script.src = src;
+                script.async = true;
+
+                script.onload = () => {
+                    if (globalName && !window[globalName]) {
+                        reject(new Error(`Library ${globalName} tidak tersedia.`));
+                        return;
+                    }
+                    resolve(globalName ? window[globalName] : true);
+                };
+
+                script.onerror = () => {
+                    reject(new Error(`Gagal memuat library: ${src}`));
+                };
+
+                document.head.appendChild(script);
+            });
+        },
+
+        _getRows() {
+            return TransactionEngine.sortTransaction(State.transactions).map((item, index) => ({
+                No: index + 1,
+                Tanggal: Utils.formatDateShort(item.date),
+                Keterangan: item.description,
+                Kategori: item.category,
+                Jenis: item.type,
+                Nominal: item.amount,
+            }));
+        },
+
+        _getSummary() {
+            return DashboardEngine.getSummary();
+        },
+
+        _downloadBlob(blob, filename) {
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement("a");
+            link.href = url;
+            link.download = filename;
+            link.style.display = "none";
+            document.body.appendChild(link);
+            link.click();
+            link.remove();
+            setTimeout(() => URL.revokeObjectURL(url), 1000);
+        },
+
+        _dateStamp() {
+            return new Date().toISOString().slice(0, 10);
+        },
 
         toCSV() {
+            if (!State.transactions.length) {
+                showToast("Belum ada transaksi untuk diekspor.", "warning");
+                return;
+            }
 
-            throw new Error(
-                "ExportEngine.toCSV belum diimplementasikan."
-            );
+            const rows = this._getRows();
+            const headers = ["No", "Tanggal", "Keterangan", "Kategori", "Jenis", "Nominal"];
 
+            const csvRows = [
+                headers,
+                ...rows.map((row) => [row.No, row.Tanggal, row.Keterangan, row.Kategori, row.Jenis, row.Nominal]),
+            ];
+
+            const csv = csvRows
+                .map((row) =>
+                    row
+                        .map((value) => {
+                            const text = String(value ?? "");
+                            return '"' + text.replace(/"/g, '""') + '"';
+                        })
+                        .join(",")
+                )
+                .join("\r\n");
+
+            const blob = new Blob(["\uFEFF" + csv], { type: "text/csv;charset=utf-8;" });
+
+            this._downloadBlob(blob, `andinomics-transaksi-${this._dateStamp()}.csv`);
+
+            showToast("File CSV berhasil dibuat.", "success");
         },
 
+        async toExcel() {
+            if (!State.transactions.length) {
+                showToast("Belum ada transaksi untuk diekspor.", "warning");
+                return;
+            }
 
-        toPDF() {
+            try {
+                showToast("Menyiapkan file Excel...", "info");
 
-            throw new Error(
-                "ExportEngine.toPDF belum diimplementasikan."
-            );
+                await this._loadScript(
+                    "https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js",
+                    "XLSX"
+                );
 
+                const rows = this._getRows();
+                const summary = this._getSummary();
+
+                const summaryRows = [
+                    ["ANDINOMICS — SMART FINANCIAL DASHBOARD"],
+                    [],
+                    ["Saldo Saat Ini", summary.saldo],
+                    ["Total Pemasukan", summary.pemasukan],
+                    ["Total Pengeluaran", summary.pengeluaran],
+                    ["Total Transaksi", summary.jumlahTransaksi],
+                    [],
+                ];
+
+                const transactionRows = [
+                    ["No", "Tanggal", "Keterangan", "Kategori", "Jenis", "Nominal"],
+                    ...rows.map((row) => [row.No, row.Tanggal, row.Keterangan, row.Kategori, row.Jenis, row.Nominal]),
+                ];
+
+                const workbook = XLSX.utils.book_new();
+                const summarySheet = XLSX.utils.aoa_to_sheet(summaryRows);
+                const transactionSheet = XLSX.utils.aoa_to_sheet(transactionRows);
+
+                summarySheet["!cols"] = [{ wch: 30 }, { wch: 20 }];
+                transactionSheet["!cols"] = [
+                    { wch: 8 },
+                    { wch: 16 },
+                    { wch: 30 },
+                    { wch: 20 },
+                    { wch: 18 },
+                    { wch: 20 },
+                ];
+
+                XLSX.utils.book_append_sheet(workbook, summarySheet, "Ringkasan");
+                XLSX.utils.book_append_sheet(workbook, transactionSheet, "Transaksi");
+
+                XLSX.writeFile(workbook, `andinomics-transaksi-${this._dateStamp()}.xlsx`);
+
+                showToast("File Excel berhasil diunduh.", "success");
+            } catch (error) {
+                console.error("[ExportEngine.toExcel]", error);
+                showToast("Export Excel gagal. Pastikan koneksi internet tersedia.", "error");
+            }
         },
 
+        async toPDF() {
+            if (!State.transactions.length) {
+                showToast("Belum ada transaksi untuk diekspor.", "warning");
+                return;
+            }
 
-        toExcel() {
+            try {
+                showToast("Menyiapkan PDF...", "info");
 
-            throw new Error(
-                "ExportEngine.toExcel belum diimplementasikan."
-            );
+                await this._loadScript(
+                    "https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js",
+                    "jspdf"
+                );
 
+                await this._loadScript(
+                    "https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.4/jspdf.plugin.autotable.min.js"
+                );
+
+                const jsPDF = window.jspdf && window.jspdf.jsPDF;
+
+                if (!jsPDF) {
+                    throw new Error("jsPDF tidak tersedia.");
+                }
+
+                const doc = new jsPDF({ orientation: "landscape", unit: "mm", format: "a4" });
+
+                const summary = this._getSummary();
+                const rows = this._getRows();
+
+                const orange = [255, 122, 0];
+                const darkGreen = [15, 36, 24];
+
+                doc.setTextColor(255, 255, 255);
+                doc.setFont("helvetica", "bold");
+                doc.setFontSize(20);
+                doc.text("ANDINOMICS", 15, 18);
+
+                doc.setFont("helvetica", "normal");
+                doc.setFontSize(10);
+                doc.text("Smart Financial Dashboard", 15, 25);
+
+                doc.setTextColor(...orange);
+                doc.setFont("helvetica", "bold");
+                doc.setFontSize(13);
+                doc.text("LAPORAN TRANSAKSI", 15, 37);
+
+                doc.setTextColor(220, 230, 225);
+                doc.setFont("helvetica", "normal");
+                doc.setFontSize(9);
+                doc.text(`Tanggal export: ${Utils.formatDateLong(new Date())}`, 15, 44);
+
+                const summaryData = [
+                    ["Saldo Saat Ini", Utils.formatRupiah(summary.saldo)],
+                    ["Total Pemasukan", Utils.formatRupiah(summary.pemasukan)],
+                    ["Total Pengeluaran", Utils.formatRupiah(summary.pengeluaran)],
+                    ["Total Transaksi", String(summary.jumlahTransaksi)],
+                ];
+
+                doc.autoTable({
+                    startY: 52,
+                    head: [["Ringkasan", "Nilai"]],
+                    body: summaryData,
+                    theme: "grid",
+                    styles: { fontSize: 9, cellPadding: 3 },
+                    headStyles: { fillColor: orange, textColor: [255, 255, 255], fontStyle: "bold" },
+                });
+
+                const finalY = doc.lastAutoTable ? doc.lastAutoTable.finalY + 10 : 100;
+
+                doc.autoTable({
+                    startY: finalY,
+                    head: [["No", "Tanggal", "Keterangan", "Kategori", "Jenis", "Nominal"]],
+                    body: rows.map((row) => [
+                        row.No,
+                        row.Tanggal,
+                        row.Keterangan,
+                        row.Kategori,
+                        row.Jenis,
+                        Utils.formatRupiah(row.Nominal),
+                    ]),
+                    theme: "grid",
+                    styles: { fontSize: 8, cellPadding: 2.5 },
+                    headStyles: { fillColor: orange, textColor: [255, 255, 255], fontStyle: "bold" },
+                });
+
+                const pageCount = typeof doc.getNumberOfPages === "function" ? doc.getNumberOfPages() : 1;
+
+                for (let page = 1; page <= pageCount; page++) {
+                    doc.setPage(page);
+                    const pageHeight = doc.internal.pageSize.getHeight();
+                    doc.setTextColor(170, 190, 180);
+                    doc.setFontSize(8);
+                    doc.text(`Andinomics • Halaman ${page} dari ${pageCount}`, 15, pageHeight - 8);
+                }
+
+                doc.save(`andinomics-transaksi-${this._dateStamp()}.pdf`);
+
+                showToast("File PDF berhasil diunduh.", "success");
+            } catch (error) {
+                console.error("[ExportEngine.toPDF]", error);
+                showToast("Export PDF gagal. Pastikan koneksi internet tersedia.", "error");
+            }
         },
-
     };
 
 
@@ -1807,307 +888,106 @@
        ========================================================== */
 
     const DialogEngine = {
-
-        _theme:
-            Object.freeze({
-
-                popup:
-                    "andi-swal-popup",
-
-                title:
-                    "andi-swal-title",
-
-                htmlContainer:
-                    "andi-swal-content",
-
-                confirmButton:
-                    "andi-swal-btn andi-swal-btn--confirm",
-
-                cancelButton:
-                    "andi-swal-btn andi-swal-btn--cancel",
-
-            }),
-
+        _theme: Object.freeze({
+            popup: "andi-swal-popup",
+            title: "andi-swal-title",
+            htmlContainer: "andi-swal-content",
+            confirmButton: "andi-swal-btn andi-swal-btn--confirm",
+            cancelButton: "andi-swal-btn andi-swal-btn--cancel",
+        }),
 
         _isAvailable() {
-
-            if (
-                typeof Swal ===
-                "undefined"
-            ) {
-
-                console.error(
-                    "[DialogEngine] SweetAlert2 belum termuat."
-                );
-
+            if (typeof Swal === "undefined") {
+                console.error("[DialogEngine] SweetAlert2 belum termuat.");
                 return false;
-
             }
-
             return true;
-
         },
-
 
         _buildDetailRows(item) {
-
             return [
-
-                [
-                    "Keterangan",
-                    item.description
-                ],
-
-                [
-                    "Kategori",
-                    item.category
-                ],
-
-                [
-                    "Nominal",
-                    Utils.formatRupiah(
-                        item.amount
-                    )
-                ],
-
-                [
-                    "Tanggal",
-                    Utils.formatDateShort(
-                        item.date
-                    )
-                ]
-
+                ["Keterangan", item.description],
+                ["Kategori", item.category],
+                ["Nominal", Utils.formatRupiah(item.amount)],
+                ["Tanggal", Utils.formatDateShort(item.date)],
             ]
-
                 .map(
-
                     ([label, value]) => `
-
-                        <div
-                            class="andi-swal-row">
-
-                            <span
-                                class="andi-swal-row-label">
-
-                                ${Utils.escapeHtml(
-                                    label
-                                )}
-
-                            </span>
-
-
-                            <span
-                                class="andi-swal-row-value">
-
-                                ${Utils.escapeHtml(
-                                    value
-                                )}
-
-                            </span>
-
+                        <div class="andi-swal-row">
+                            <span class="andi-swal-row-label">${Utils.escapeHtml(label)}</span>
+                            <span class="andi-swal-row-value">${Utils.escapeHtml(value)}</span>
                         </div>
-
                     `
-
                 )
-
                 .join("");
-
         },
-
 
         async confirmDelete(item) {
-
-            if (
-                !this._isAvailable()
-            ) {
-
-                return window.confirm(
-                    `Hapus transaksi "${item.description}"?`
-                );
-
+            if (!this._isAvailable()) {
+                return window.confirm(`Hapus transaksi "${item.description}"?`);
             }
 
-
             try {
+                const result = await Swal.fire({
+                    title: "Hapus Transaksi",
+                    html: `
+                        <p class="andi-swal-question">Apakah Anda yakin ingin menghapus transaksi ini?</p>
+                        <div class="andi-swal-details">${this._buildDetailRows(item)}</div>
+                    `,
+                    icon: "warning",
+                    showCancelButton: true,
+                    confirmButtonText: "Ya, Hapus",
+                    cancelButtonText: "Batal",
+                    reverseButtons: true,
+                    focusCancel: true,
+                    buttonsStyling: false,
+                    customClass: this._theme,
+                });
 
-                const result =
-                    await Swal.fire({
-
-                        title:
-                            "Hapus Transaksi",
-
-                        html: `
-
-                            <p
-                                class="andi-swal-question">
-
-                                Apakah Anda yakin ingin menghapus transaksi ini?
-
-                            </p>
-
-
-                            <div
-                                class="andi-swal-details">
-
-                                ${this._buildDetailRows(
-                                    item
-                                )}
-
-                            </div>
-
-                        `,
-
-                        icon:
-                            "warning",
-
-                        showCancelButton:
-                            true,
-
-                        confirmButtonText:
-                            "Ya, Hapus",
-
-                        cancelButtonText:
-                            "Batal",
-
-                        reverseButtons:
-                            true,
-
-                        focusCancel:
-                            true,
-
-                        buttonsStyling:
-                            false,
-
-                        customClass:
-                            this._theme,
-
-                    });
-
-
-                return Boolean(
-                    result.isConfirmed
-                );
-
+                return Boolean(result.isConfirmed);
             } catch (error) {
-
-                console.error(
-                    "[DialogEngine.confirmDelete] Gagal menampilkan dialog:",
-                    error
-                );
-
+                console.error("[DialogEngine.confirmDelete] Gagal menampilkan dialog:", error);
                 return false;
-
             }
-
         },
 
-
-        async success(
-            title,
-            message
-        ) {
-
-            if (
-                !this._isAvailable()
-            ) {
-
+        async success(title, message) {
+            if (!this._isAvailable()) {
                 return;
-
             }
-
 
             try {
-
                 await Swal.fire({
-
-                    title:
-
-                        title,
-
-                    text:
-
-                        message,
-
-                    icon:
-
-                        "success",
-
-                    confirmButtonText:
-
-                        "OK",
-
-                    buttonsStyling:
-
-                        false,
-
-                    customClass:
-
-                        this._theme,
-
+                    title: title,
+                    text: message,
+                    icon: "success",
+                    confirmButtonText: "OK",
+                    buttonsStyling: false,
+                    customClass: this._theme,
                 });
-
             } catch (error) {
-
-                console.error(
-                    "[DialogEngine.success] Gagal menampilkan dialog:",
-                    error
-                );
-
+                console.error("[DialogEngine.success] Gagal menampilkan dialog:", error);
             }
-
         },
 
-
-        async error(
-            title,
-            message
-        ) {
-
-            if (
-                !this._isAvailable()
-            ) {
-
+        async error(title, message) {
+            if (!this._isAvailable()) {
                 return;
-
             }
-
 
             try {
-
                 await Swal.fire({
-
-                    title:
-                        title,
-
-                    text:
-                        message,
-
-                    icon:
-                        "error",
-
-                    confirmButtonText:
-                        "OK",
-
-                    buttonsStyling:
-                        false,
-
-                    customClass:
-                        this._theme,
-
+                    title: title,
+                    text: message,
+                    icon: "error",
+                    confirmButtonText: "OK",
+                    buttonsStyling: false,
+                    customClass: this._theme,
                 });
-
             } catch (error) {
-
-                console.error(
-                    "[DialogEngine.error] Gagal menampilkan dialog:",
-                    error
-                );
-
+                console.error("[DialogEngine.error] Gagal menampilkan dialog:", error);
             }
-
         },
-
     };
 
 
@@ -2116,228 +996,55 @@
        ========================================================== */
 
     const ToastEngine = {
-
-        _variants:
-
-            Object.freeze({
-
-                success: {
-
-                    icon:
-                        "fa-solid fa-circle-check",
-
-                    className:
-                        "toast--success"
-
-                },
-
-
-                error: {
-
-                    icon:
-                        "fa-solid fa-circle-xmark",
-
-                    className:
-                        "toast--error"
-
-                },
-
-
-                info: {
-
-                    icon:
-                        "fa-solid fa-circle-info",
-
-                    className:
-                        "toast--info"
-
-                },
-
-
-                warning: {
-
-                    icon:
-                        "fa-solid fa-triangle-exclamation",
-
-                    className:
-                        "toast--warning"
-
-                },
-
-            }),
-
+        _variants: Object.freeze({
+            success: { icon: "fa-solid fa-circle-check", className: "toast--success" },
+            error: { icon: "fa-solid fa-circle-xmark", className: "toast--error" },
+            info: { icon: "fa-solid fa-circle-info", className: "toast--info" },
+            warning: { icon: "fa-solid fa-triangle-exclamation", className: "toast--warning" },
+        }),
 
         _dismiss(toastEl) {
-
-            if (
-                !toastEl ||
-                toastEl.dataset.dismissing ===
-                    "true"
-            ) {
-
+            if (!toastEl || toastEl.dataset.dismissing === "true") {
                 return;
-
             }
 
+            toastEl.dataset.dismissing = "true";
+            toastEl.classList.remove("toast--visible");
+            toastEl.classList.add("toast--leaving");
 
-            toastEl.dataset.dismissing =
-                "true";
-
-
-            toastEl.classList.remove(
-                "toast--visible"
-            );
-
-
-            toastEl.classList.add(
-                "toast--leaving"
-            );
-
-
-            toastEl.addEventListener(
-
-                "transitionend",
-
-                () =>
-                    toastEl.remove(),
-
-                {
-                    once:
-                        true
-                }
-
-            );
-
+            toastEl.addEventListener("transitionend", () => toastEl.remove(), { once: true });
         },
 
-
-        show(
-            message,
-            variant = "success"
-        ) {
-
-            if (
-                !dom.toastContainer
-            ) {
-
+        show(message, variant = "success") {
+            if (!dom.toastContainer) {
                 return;
-
             }
 
+            const meta = this._variants[variant] || this._variants.success;
+            const toastEl = document.createElement("div");
 
-            const meta =
-                this._variants[
-                    variant
-                ] ||
-                this._variants.success;
-
-
-            const toastEl =
-                document.createElement(
-                    "div"
-                );
-
-
-            toastEl.className =
-                `toast ${meta.className}`;
-
-
-            toastEl.setAttribute(
-
-                "role",
-
-                variant ===
-                    "error"
-                    ? "alert"
-                    : "status"
-
-            );
-
+            toastEl.className = `toast ${meta.className}`;
+            toastEl.setAttribute("role", variant === "error" ? "alert" : "status");
 
             toastEl.innerHTML = `
-
-                <i
-                    class="${meta.icon} toast-icon"
-                    aria-hidden="true">
-                </i>
-
-
-                <span
-                    class="toast-message">
-                </span>
-
-
-                <button
-                    type="button"
-                    class="toast-close"
-                    aria-label="Tutup notifikasi">
-
-                    <i
-                        class="fa-solid fa-xmark"
-                        aria-hidden="true">
-                    </i>
-
+                <i class="${meta.icon} toast-icon" aria-hidden="true"></i>
+                <span class="toast-message"></span>
+                <button type="button" class="toast-close" aria-label="Tutup notifikasi">
+                    <i class="fa-solid fa-xmark" aria-hidden="true"></i>
                 </button>
-
-
-                <span
-                    class="toast-progress"
-                    style="animation-duration: ${CONFIG.TOAST_DURATION_MS}ms;">
-                </span>
-
+                <span class="toast-progress" style="animation-duration: ${CONFIG.TOAST_DURATION_MS}ms;"></span>
             `;
 
+            toastEl.querySelector(".toast-message").textContent = message;
 
-            toastEl
-                .querySelector(
-                    ".toast-message"
-                )
-                .textContent =
-                message;
+            toastEl.querySelector(".toast-close").addEventListener("click", () => this._dismiss(toastEl));
 
+            dom.toastContainer.appendChild(toastEl);
 
-            toastEl
-                .querySelector(
-                    ".toast-close"
-                )
-                .addEventListener(
+            requestAnimationFrame(() => toastEl.classList.add("toast--visible"));
 
-                    "click",
-
-                    () =>
-                        this._dismiss(
-                            toastEl
-                        )
-
-                );
-
-
-            dom.toastContainer.appendChild(
-                toastEl
-            );
-
-
-            requestAnimationFrame(
-                () =>
-                    toastEl.classList.add(
-                        "toast--visible"
-                    )
-            );
-
-
-            setTimeout(
-
-                () =>
-                    this._dismiss(
-                        toastEl
-                    ),
-
-                CONFIG.TOAST_DURATION_MS
-
-            );
-
+            setTimeout(() => this._dismiss(toastEl), CONFIG.TOAST_DURATION_MS);
         },
-
     };
 
 
@@ -2345,613 +1052,199 @@
        14. EVENT ENGINE
        ========================================================== */
 
-    function showToast(
-        message,
-        variant = "success"
-    ) {
-
-        ToastEngine.show(
-            message,
-            variant
-        );
-
+    function showToast(message, variant = "success") {
+        ToastEngine.show(message, variant);
     }
 
-
-    function persistAndRender(
-        filterText
-    ) {
-
-        const saved =
-            Storage.save(
-                State.transactions
-            );
-
+    function persistAndRender(filterText) {
+        const saved = Storage.save(State.transactions);
 
         if (!saved) {
-
-            showToast(
-                "Gagal menyimpan data ke penyimpanan lokal.",
-                "error"
-            );
-
+            showToast("Gagal menyimpan data ke penyimpanan lokal.", "error");
         }
 
-
-        RenderEngine.renderAll(
-
-            filterText ??
-            dom.searchInput.value
-
-        );
-
+        RenderEngine.renderAll(filterText ?? dom.searchInput.value);
     }
-
 
     function resetFormToCreateMode() {
-
-        State.editingId =
-            null;
-
-
+        State.editingId = null;
         dom.form.reset();
-
-
-        dom.transactionId.value =
-            "";
-
-
-        dom.date.value =
-            Utils.todayIso();
-
-
-        dom.submitBtnLabel.textContent =
-            "Simpan Transaksi";
-
-
-        dom.cancelEditBtn.hidden =
-            true;
-
-
+        dom.transactionId.value = "";
+        dom.date.value = Utils.todayIso();
+        dom.submitBtnLabel.textContent = "Simpan Transaksi";
+        dom.cancelEditBtn.hidden = true;
         Validation.clear();
-
     }
-
 
     function enterEditMode(id) {
-
-        const item =
-            TransactionEngine
-                .findTransaction(id);
-
+        const item = TransactionEngine.findTransaction(id);
 
         if (!item) {
-
             return;
-
         }
 
-
-        State.editingId =
-            id;
-
-
-        dom.transactionId.value =
-            item.id;
-
-
-        dom.description.value =
-            item.description;
-
-
-        dom.type.value =
-            item.type;
-
-
-        dom.category.value =
-            item.category;
-
-
-        dom.amount.value =
-            item.amount;
-
-
-        dom.date.value =
-            item.date;
-
-
-        dom.submitBtnLabel.textContent =
-            "Perbarui Transaksi";
-
-
-        dom.cancelEditBtn.hidden =
-            false;
-
-
+        State.editingId = id;
+        dom.transactionId.value = item.id;
+        dom.description.value = item.description;
+        dom.type.value = item.type;
+        dom.category.value = item.category;
+        dom.amount.value = item.amount;
+        dom.date.value = item.date;
+        dom.submitBtnLabel.textContent = "Perbarui Transaksi";
+        dom.cancelEditBtn.hidden = false;
         dom.description.focus();
-
     }
 
-
-    function handleFormSubmit(
-        event
-    ) {
-
+    function handleFormSubmit(event) {
         event.preventDefault();
 
-
         try {
-
             const payload = {
-
-                description:
-                    dom.description.value,
-
-                type:
-                    dom.type.value,
-
-                category:
-                    dom.category.value,
-
-                amount:
-                    Number(
-                        dom.amount.value
-                    ),
-
-                date:
-                    dom.date.value,
-
+                description: dom.description.value,
+                type: dom.type.value,
+                category: dom.category.value,
+                amount: Number(dom.amount.value),
+                date: dom.date.value,
             };
 
-
-            if (
-                !Validation.validate(
-                    payload
-                )
-            ) {
-
-                showToast(
-                    "Periksa kembali data yang dimasukkan.",
-                    "error"
-                );
-
+            if (!Validation.validate(payload)) {
+                showToast("Periksa kembali data yang dimasukkan.", "error");
                 return;
-
             }
-
 
             const cleanPayload = {
-
-                description:
-                    payload.description
-                        .trim(),
-
-                type:
-                    payload.type,
-
-                category:
-                    payload.category,
-
-                amount:
-                    payload.amount,
-
-                date:
-                    payload.date,
-
+                description: payload.description.trim(),
+                type: payload.type,
+                category: payload.category,
+                amount: payload.amount,
+                date: payload.date,
             };
 
-
-            if (
-                State.editingId
-            ) {
-
-                const updated =
-                    TransactionEngine
-                        .updateTransaction(
-
-                            State.editingId,
-
-                            cleanPayload
-
-                        );
-
+            if (State.editingId) {
+                const updated = TransactionEngine.updateTransaction(State.editingId, cleanPayload);
 
                 if (!updated) {
-
-                    console.error(
-
-                        "[handleFormSubmit] Transaksi yang diedit tidak ditemukan:",
-
-                        State.editingId
-
-                    );
-
-
-                    showToast(
-                        "Transaksi tidak ditemukan.",
-                        "error"
-                    );
-
+                    console.error("[handleFormSubmit] Transaksi yang diedit tidak ditemukan:", State.editingId);
+                    showToast("Transaksi tidak ditemukan.", "error");
                     return;
-
                 }
 
-
-                showToast(
-                    "Transaksi berhasil diperbarui."
-                );
-
+                showToast("Transaksi berhasil diperbarui.");
             } else {
-
-                TransactionEngine
-                    .addTransaction(
-                        cleanPayload
-                    );
-
-
-                showToast(
-                    "Transaksi berhasil disimpan."
-                );
-
+                TransactionEngine.addTransaction(cleanPayload);
+                showToast("Transaksi berhasil disimpan.");
             }
-
 
             resetFormToCreateMode();
-
-
             persistAndRender();
-
         } catch (error) {
-
-            console.error(
-
-                "[handleFormSubmit] Terjadi kesalahan saat menyimpan transaksi:",
-
-                error
-
-            );
-
-
-            showToast(
-
-                "Terjadi kesalahan saat menyimpan transaksi.",
-
-                "error"
-
-            );
-
+            console.error("[handleFormSubmit] Terjadi kesalahan saat menyimpan transaksi:", error);
+            showToast("Terjadi kesalahan saat menyimpan transaksi.", "error");
         }
-
     }
 
-
-    async function handleTableClick(
-        event
-    ) {
-
-        const button =
-            event.target.closest(
-                "button[data-action]"
-            );
-
+    async function handleTableClick(event) {
+        const button = event.target.closest("button[data-action]");
 
         if (!button) {
-
             return;
-
         }
 
+        const { action, id } = button.dataset;
 
-        const {
-            action,
-            id
-        } =
-            button.dataset;
-
-
-        if (
-            action === "edit"
-        ) {
-
+        if (action === "edit") {
             try {
-
                 enterEditMode(id);
-
             } catch (error) {
-
-                console.error(
-
-                    "[handleTableClick] Terjadi kesalahan pada aksi tabel:",
-
-                    error
-
-                );
-
-
-                showToast(
-
-                    "Terjadi kesalahan saat memproses aksi ini.",
-
-                    "error"
-
-                );
-
+                console.error("[handleTableClick] Terjadi kesalahan pada aksi tabel:", error);
+                showToast("Terjadi kesalahan saat memproses aksi ini.", "error");
             }
 
             return;
-
         }
 
-
-        if (
-            action === "delete"
-        ) {
-
+        if (action === "delete") {
             try {
-
-                const item =
-                    TransactionEngine
-                        .findTransaction(id);
-
+                const item = TransactionEngine.findTransaction(id);
 
                 if (!item) {
-
                     return;
-
                 }
 
-
-                const confirmed =
-                    await DialogEngine
-                        .confirmDelete(
-                            item
-                        );
-
+                const confirmed = await DialogEngine.confirmDelete(item);
 
                 if (!confirmed) {
-
                     return;
-
                 }
 
-
-                const deleted =
-                    TransactionEngine
-                        .deleteTransaction(
-                            id
-                        );
-
+                const deleted = TransactionEngine.deleteTransaction(id);
 
                 if (!deleted) {
-
-                    console.error(
-
-                        "[handleTableClick] Gagal menghapus transaksi:",
-
-                        id
-
-                    );
-
-
-                    await DialogEngine.error(
-
-                        "Gagal",
-
-                        "Transaksi gagal dihapus."
-
-                    );
-
+                    console.error("[handleTableClick] Gagal menghapus transaksi:", id);
+                    await DialogEngine.error("Gagal", "Transaksi gagal dihapus.");
                     return;
-
                 }
 
-
-                if (
-                    State.editingId ===
-                    id
-                ) {
-
+                if (State.editingId === id) {
                     resetFormToCreateMode();
-
                 }
-
 
                 persistAndRender();
 
-
-                await DialogEngine.success(
-
-                    "Berhasil",
-
-                    "Transaksi berhasil dihapus."
-
-                );
-
+                await DialogEngine.success("Berhasil", "Transaksi berhasil dihapus.");
             } catch (error) {
-
-                console.error(
-
-                    "[handleTableClick] Terjadi kesalahan pada aksi tabel:",
-
-                    error
-
-                );
-
-
-                await DialogEngine.error(
-
-                    "Terjadi Kesalahan",
-
-                    "Terjadi kesalahan saat menghapus transaksi."
-
-                );
-
+                console.error("[handleTableClick] Terjadi kesalahan pada aksi tabel:", error);
+                await DialogEngine.error("Terjadi Kesalahan", "Terjadi kesalahan saat menghapus transaksi.");
             }
-
         }
-
     }
 
-
-    function handleSearchInput(
-        event
-    ) {
-
-        RenderEngine.renderTable(
-            event.target.value
-        );
-
+    function handleSearchInput(event) {
+        RenderEngine.renderTable(event.target.value);
     }
-
 
     const QUICK_EXPORT_ACTIONS = {
-
-        "export-pdf":
-            () =>
-                ExportEngine.toPDF(),
-
-        "export-excel":
-            () =>
-                ExportEngine.toExcel(),
-
+        "export-pdf": () => ExportEngine.toPDF(),
+        "export-excel": () => ExportEngine.toExcel(),
     };
 
-
-    function handleQuickMenuClick(
-        event
-    ) {
-
-        const button =
-            event.target.closest(
-                "button[data-action]"
-            );
-
+    function handleQuickMenuClick(event) {
+        const button = event.target.closest("button[data-action]");
 
         if (!button) {
-
             return;
-
         }
 
+        const { action } = button.dataset;
 
-        const {
-            action
-        } =
-            button.dataset;
-
-
-        if (
-            action ===
-            "focus-form"
-        ) {
-
-            document
-                .getElementById(
-                    "form-title"
-                )
-                ?.scrollIntoView({
-
-                    behavior:
-                        "smooth",
-
-                    block:
-                        "start"
-
-                });
-
-
+        if (action === "focus-form") {
+            document.getElementById("form-title")?.scrollIntoView({ behavior: "smooth", block: "start" });
             dom.description.focus();
-
-
             return;
-
         }
 
-
-        if (
-            action in
-            QUICK_EXPORT_ACTIONS
-        ) {
-
+        if (action in QUICK_EXPORT_ACTIONS) {
             try {
-
-                QUICK_EXPORT_ACTIONS[
-                    action
-                ]();
-
+                QUICK_EXPORT_ACTIONS[action]();
             } catch (error) {
-
-                console.error(
-
-                    `[handleQuickMenuClick] Fitur "${action}" belum tersedia:`,
-
-                    error
-
-                );
-
-
-                showToast(
-                    "Fitur ini akan segera hadir di versi berikutnya."
-                );
-
+                console.error(`[handleQuickMenuClick] Fitur "${action}" belum tersedia:`, error);
+                showToast("Fitur ini akan segera hadir di versi berikutnya.");
             }
 
-
             return;
-
         }
 
-
-        if (
-            action ===
-            "analytics"
-        ) {
-
-            showToast(
-                "Fitur ini akan segera hadir di versi berikutnya."
-            );
-
+        if (action === "analytics") {
+            showToast("Fitur ini akan segera hadir di versi berikutnya.");
         }
-
     }
 
-
     function bindEvents() {
-
-        dom.form.addEventListener(
-            "submit",
-            handleFormSubmit
-        );
-
-
-        dom.cancelEditBtn
-            .addEventListener(
-                "click",
-                resetFormToCreateMode
-            );
-
-
-        dom.table.addEventListener(
-            "click",
-            handleTableClick
-        );
-
-
-        dom.searchInput.addEventListener(
-            "input",
-            handleSearchInput
-        );
-
-
-        document
-            .querySelector(
-                ".quick-menu"
-            )
-            ?.addEventListener(
-                "click",
-                handleQuickMenuClick
-            );
-
+        dom.form.addEventListener("submit", handleFormSubmit);
+        dom.cancelEditBtn.addEventListener("click", resetFormToCreateMode);
+        dom.table.addEventListener("click", handleTableClick);
+        dom.searchInput.addEventListener("input", handleSearchInput);
+        document.querySelector(".quick-menu")?.addEventListener("click", handleQuickMenuClick);
     }
 
 
@@ -2960,62 +1253,22 @@
        ========================================================== */
 
     function init() {
-
         try {
+            dom.todayDate.textContent = Utils.formatDateLong(new Date());
+            dom.footerYear.textContent = String(new Date().getFullYear());
+            dom.date.value = Utils.todayIso();
 
-            dom.todayDate.textContent =
-                Utils.formatDateLong(
-                    new Date()
-                );
-
-
-            dom.footerYear.textContent =
-                String(
-                    new Date()
-                        .getFullYear()
-                );
-
-
-            dom.date.value =
-                Utils.todayIso();
-
-
-            State.transactions =
-                Storage.load();
-
+            State.transactions = Storage.load();
 
             bindEvents();
 
-
             RenderEngine.renderAll();
-
         } catch (error) {
-
-            console.error(
-
-                "[init] Gagal menginisialisasi Andinomics:",
-
-                error
-
-            );
-
-
-            showToast(
-
-                "Terjadi kesalahan saat memuat aplikasi.",
-
-                "error"
-
-            );
-
+            console.error("[init] Gagal menginisialisasi Andinomics:", error);
+            showToast("Terjadi kesalahan saat memuat aplikasi.", "error");
         }
-
     }
 
-
-    document.addEventListener(
-        "DOMContentLoaded",
-        init
-    );
+    document.addEventListener("DOMContentLoaded", init);
 
 })();
