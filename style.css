@@ -1058,3 +1058,231 @@ footer strong {
         text-align: left;
     }
 }
+
+/* ==========================================================
+   SPRINT 7.3 — ANALYTICS UI
+   Blok ini hanya MENAMBAH gaya untuk bagian Analytics,
+   tidak mengubah gaya lain yang sudah ada.
+   ========================================================== */
+
+.analytics-section {
+    width: 100%;
+    scroll-margin-top: var(--header-height);
+}
+
+.analytics-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-xl);
+    padding: var(--space-7);
+    box-shadow: var(--shadow-md);
+}
+
+.analytics-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: var(--space-6);
+}
+
+.analytics-header h2 {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+}
+
+.analytics-header h2 i {
+    color: var(--orange);
+}
+
+.analytics-subtitle {
+    color: var(--text-muted);
+    font-size: var(--fs-sm);
+}
+
+/* ----- Summary grid ----- */
+.analytics-summary {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: var(--space-5);
+    margin-bottom: var(--space-6);
+}
+
+.analytics-item {
+    background: var(--surface-2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    padding: var(--space-5);
+    transition: transform var(--transition-fast), background var(--transition-fast);
+}
+
+.analytics-item:hover {
+    transform: translateY(-4px);
+    background: var(--card-hover);
+}
+
+.analytics-label {
+    display: block;
+    color: var(--text-muted);
+    font-size: var(--fs-xs);
+    margin-bottom: var(--space-2);
+}
+
+.analytics-value {
+    color: var(--text);
+    font-size: var(--fs-xl);
+    font-weight: 700;
+}
+
+.analytics-positive {
+    color: var(--success);
+}
+
+.analytics-negative {
+    color: var(--danger);
+}
+
+/* ----- Detail grid ----- */
+.analytics-detail {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: var(--space-5);
+}
+
+.analytics-detail-box {
+    background: var(--surface-2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    padding: var(--space-5);
+}
+
+.analytics-detail-box h3 {
+    color: var(--text);
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    margin-bottom: var(--space-3);
+}
+
+.analytics-detail-box h3 i {
+    color: var(--orange);
+}
+
+.analytics-detail-box p {
+    color: var(--text);
+    font-size: var(--fs-base);
+}
+
+/* ----- Category breakdown ----- */
+.analytics-category {
+    margin-top: var(--space-6);
+}
+
+.analytics-category h3 {
+    color: var(--text);
+    font-weight: 700;
+    margin-bottom: var(--space-4);
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+}
+
+.analytics-category h3 i {
+    color: var(--orange);
+}
+
+.analytics-category-list {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-4);
+}
+
+.analytics-category-item {
+    background: var(--surface-2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    padding: var(--space-4);
+}
+
+.analytics-category-info {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: var(--space-4);
+    margin-bottom: var(--space-2);
+}
+
+.analytics-category-info span {
+    color: var(--text);
+    font-size: var(--fs-sm);
+}
+
+.analytics-category-info strong {
+    color: var(--text);
+    font-size: var(--fs-sm);
+}
+
+.analytics-progress {
+    width: 100%;
+    height: 8px;
+    background: var(--surface-3);
+    border-radius: 999px;
+    overflow: hidden;
+}
+
+.analytics-progress-bar {
+    height: 100%;
+    background: var(--orange);
+    border-radius: 999px;
+    transition: width var(--transition-base);
+}
+
+.analytics-category-item small {
+    display: block;
+    margin-top: var(--space-2);
+    color: var(--text-muted);
+    font-size: var(--fs-xs);
+}
+
+.analytics-empty {
+    text-align: center;
+    color: var(--text-muted);
+    padding: var(--space-6);
+    background: var(--surface-2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+}
+
+/* ----- Responsive ----- */
+@media (max-width: 960px) {
+    .analytics-summary {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (max-width: 720px) {
+    .analytics-detail {
+        grid-template-columns: 1fr;
+    }
+
+    .analytics-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: var(--space-3);
+    }
+}
+
+@media (max-width: 480px) {
+    .analytics-summary {
+        grid-template-columns: 1fr;
+    }
+
+    .analytics-card {
+        padding: var(--space-5);
+    }
+
+    .analytics-value {
+        font-size: var(--fs-lg);
+    }
+}
