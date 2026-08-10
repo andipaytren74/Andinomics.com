@@ -951,7 +951,121 @@
         },
 
     };
+    /* ==========================================================
+       10.7 FINANCIAL INSIGHTS RENDERER
+       Menampilkan hasil InsightEngine ke #insightList
+       ========================================================== */
 
+    function renderFinancialInsights() {
+        try {
+            const insightList =
+                document.getElementById("insightList");
+
+            if (!insightList) {
+                return;
+            }
+
+            const result =
+                InsightEngine.analyze();
+
+            insightList.replaceChildren();
+
+            if (!result.hasData) {
+                const emptyState =
+                    document.createElement("p");
+
+                emptyState.className =
+                    "insight-empty";
+
+                emptyState.textContent =
+                    result.message ||
+                    "Belum ada cukup data transaksi untuk memberikan insight keuangan.";
+
+                insightList.appendChild(
+                    emptyState
+                );
+
+                return;
+            }
+
+            result.insights.forEach(
+                (insight) => {
+
+                    const item =
+                        document.createElement("article");
+
+                    item.className =
+                        `insight-item insight--${insight.type}`;
+
+                    const icon =
+                        document.createElement("div");
+
+                    icon.className =
+                        "insight-icon";
+
+                    const iconElement =
+                        document.createElement("i");
+
+                    iconElement.className =
+                        `fa-solid ${insight.icon}`;
+
+                    iconElement.setAttribute(
+                        "aria-hidden",
+                        "true"
+                    );
+
+                    icon.appendChild(
+                        iconElement
+                    );
+
+                    const content =
+                        document.createElement("div");
+
+                    content.className =
+                        "insight-content";
+
+                    const title =
+                        document.createElement("h3");
+
+                    title.textContent =
+                        insight.title;
+
+                    const message =
+                        document.createElement("p");
+
+                    message.textContent =
+                        insight.message;
+
+                    content.appendChild(
+                        title
+                    );
+
+                    content.appendChild(
+                        message
+                    );
+
+                    item.appendChild(
+                        icon
+                    );
+
+                    item.appendChild(
+                        content
+                    );
+
+                    insightList.appendChild(
+                        item
+                    );
+                }
+            );
+
+        } catch (error) {
+
+            console.error(
+                "[renderFinancialInsights]",
+                error
+            );
+        }
+    }
 
     /* ==========================================================
        11. EXPORT ENGINE
@@ -1412,6 +1526,8 @@
         RenderEngine.renderAll(filterText ?? dom.searchInput.value);
 
         AnalyticsEngine.render();
+
+        renderFinancialInsights();
     }
 
     function resetFormToCreateMode() {
