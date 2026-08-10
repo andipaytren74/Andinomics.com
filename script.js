@@ -1733,9 +1733,11 @@
 
             bindEvents();
 
-            RenderEngine.renderAll();
+    RenderEngine.renderAll();
 
-            AnalyticsEngine.render();
+AnalyticsEngine.render();
+
+renderFinancialInsights();
         } catch (error) {
             console.error("[init] Gagal menginisialisasi Andinomics:", error);
             showToast("Terjadi kesalahan saat memuat aplikasi.", "error");
