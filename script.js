@@ -70,6 +70,10 @@
         cancelEditBtn: document.getElementById("cancelEditBtn"),
         table: document.getElementById("transactionTable"),
         searchInput: document.getElementById("searchTransaction"),
+        filterType: document.getElementById("filterType"),
+        filterCategory: document.getElementById("filterCategory"),
+        filterDate: document.getElementById("filterDate"),
+        resetFiltersBtn: document.getElementById("resetFilters"),
         saldo: document.getElementById("saldo"),
         masuk: document.getElementById("masuk"),
         keluar: document.getElementById("keluar"),
@@ -340,6 +344,70 @@
                 [item.description, item.category, item.type].join(" ").toLowerCase().includes(trimmed)
             );
         },
+
+        /**
+         * Menerapkan kombinasi seluruh filter (search + jenis + kategori +
+         * tanggal) pada sebuah list transaksi TANPA mengubah list aslinya.
+         * Selalu mengembalikan array baru; State.transactions tidak disentuh.
+         */
+        applyFilters(list, filters = {}) {
+            const {
+                search = "",
+                type = "all",
+                category = "all",
+                date = "",
+            } = filters;
+
+            let result = this.filterTransaction(list, search);
+
+            if (type && type !== "all") {
+                result = result.filter((item) => item.type === type);
+            }
+
+            if (category && category !== "all") {
+                result = result.filter((item) => item.category === category);
+            }
+
+            if (date) {
+                result = result.filter((item) => item.date === date);
+            }
+
+            return result;
+        },
+    };
+
+
+    /* ==========================================================
+       7.5 FILTER ENGINE
+       Mekanisme terpusat untuk membaca nilai filter dari UI
+       (search, jenis, kategori, tanggal) dan mereset nilainya.
+       Tidak pernah mengubah State.transactions.
+       ========================================================== */
+
+    const FilterEngine = {
+        getActiveFilters() {
+            return {
+                search: dom.searchInput ? dom.searchInput.value : "",
+                type: dom.filterType ? dom.filterType.value : "all",
+                category: dom.filterCategory ? dom.filterCategory.value : "all",
+                date: dom.filterDate ? dom.filterDate.value : "",
+            };
+        },
+
+        reset() {
+            if (dom.searchInput) {
+                dom.searchInput.value = "";
+            }
+            if (dom.filterType) {
+                dom.filterType.value = "all";
+            }
+            if (dom.filterCategory) {
+                dom.filterCategory.value = "all";
+            }
+            if (dom.filterDate) {
+                dom.filterDate.value = "";
+            }
+        },
     };
 
 
@@ -371,17 +439,24 @@
             }
         },
 
-        renderTable(filterText = "") {
+        renderTable(filters) {
             try {
-                const keyword = filterText.trim();
-                const filtered = TransactionEngine.filterTransaction(State.transactions, keyword);
+                const activeFilters = filters || FilterEngine.getActiveFilters();
+                const filtered = TransactionEngine.applyFilters(State.transactions, activeFilters);
 
                 if (filtered.length === 0) {
+                    const hasActiveFilter = Boolean(
+                        (activeFilters.search && activeFilters.search.trim()) ||
+                        (activeFilters.type && activeFilters.type !== "all") ||
+                        (activeFilters.category && activeFilters.category !== "all") ||
+                        activeFilters.date
+                    );
+
                     dom.table.innerHTML = `
                         <tr>
                             <td colspan="6" class="empty-data">
                                 <i class="fa-solid fa-folder-open" aria-hidden="true"></i>
-                                ${keyword ? "Tidak ada transaksi yang cocok." : "Belum ada transaksi."}
+                                ${hasActiveFilter ? "Tidak ada transaksi yang cocok." : "Belum ada transaksi."}
                             </td>
                         </tr>
                     `;
@@ -431,9 +506,9 @@
             ChartEngine.update();
         },
 
-        renderAll(filterText = "") {
+        renderAll(filters) {
             this.renderDashboard();
-            this.renderTable(filterText);
+            this.renderTable(filters);
             this.renderChart();
         },
     };
@@ -1516,14 +1591,14 @@
         ToastEngine.show(message, variant);
     }
 
-    function persistAndRender(filterText) {
+    function persistAndRender() {
         const saved = Storage.save(State.transactions);
 
         if (!saved) {
             showToast("Gagal menyimpan data ke penyimpanan lokal.", "error");
         }
 
-        RenderEngine.renderAll(filterText ?? dom.searchInput.value);
+        RenderEngine.renderAll();
 
         AnalyticsEngine.render();
 
@@ -1663,8 +1738,17 @@
         }
     }
 
-    function handleSearchInput(event) {
-        RenderEngine.renderTable(event.target.value);
+    function handleSearchInput() {
+        RenderEngine.renderTable();
+    }
+
+    function handleFilterChange() {
+        RenderEngine.renderTable();
+    }
+
+    function handleResetFilters() {
+        FilterEngine.reset();
+        RenderEngine.renderTable();
     }
 
     const QUICK_EXPORT_ACTIONS = {
@@ -1716,6 +1800,22 @@
         dom.table.addEventListener("click", handleTableClick);
         dom.searchInput.addEventListener("input", handleSearchInput);
         document.querySelector(".quick-menu")?.addEventListener("click", handleQuickMenuClick);
+
+        if (dom.filterType) {
+            dom.filterType.addEventListener("change", handleFilterChange);
+        }
+
+        if (dom.filterCategory) {
+            dom.filterCategory.addEventListener("change", handleFilterChange);
+        }
+
+        if (dom.filterDate) {
+            dom.filterDate.addEventListener("change", handleFilterChange);
+        }
+
+        if (dom.resetFiltersBtn) {
+            dom.resetFiltersBtn.addEventListener("click", handleResetFilters);
+        }
     }
 
 
