@@ -752,6 +752,208 @@
 
 
     /* ==========================================================
+       10.6 INSIGHT ENGINE
+       Financial Insight Engine — menganalisis State.transactions
+       dan menghasilkan kesimpulan keuangan otomatis (lokal,
+       tanpa API eksternal). Tidak membuat UI/CSS pada tahap ini.
+       ========================================================== */
+
+    const InsightEngine = {
+
+        _emptyResult() {
+            return {
+                hasData: false,
+                message: "Belum ada cukup data transaksi untuk memberikan insight keuangan.",
+            };
+        },
+
+        analyze() {
+            try {
+                const transactions = State.transactions || [];
+
+                if (transactions.length < 1) {
+                    return this._emptyResult();
+                }
+
+                let totalIncome = 0;
+                let totalExpense = 0;
+                let incomeCount = 0;
+                let expenseCount = 0;
+
+                const expenseByCategory = new Map();
+
+                transactions.forEach((transaction) => {
+                    const amount = Number(transaction?.amount) || 0;
+                    const type = transaction?.type;
+
+                    if (type === "Pemasukan") {
+                        totalIncome += amount;
+                        incomeCount += 1;
+                    }
+
+                    if (type === "Pengeluaran") {
+                        totalExpense += amount;
+                        expenseCount += 1;
+
+                        const category = transaction?.category || "Lainnya";
+
+                        expenseByCategory.set(
+                            category,
+                            (expenseByCategory.get(category) || 0) + amount
+                        );
+                    }
+                });
+
+                const balance = totalIncome - totalExpense;
+
+                let topCategoryName = null;
+                let topCategoryAmount = 0;
+
+                expenseByCategory.forEach((amount, category) => {
+                    if (amount > topCategoryAmount) {
+                        topCategoryAmount = amount;
+                        topCategoryName = category;
+                    }
+                });
+
+                const topCategoryPercentage =
+                    totalExpense > 0 && topCategoryAmount > 0
+                        ? (topCategoryAmount / totalExpense) * 100
+                        : 0;
+
+                const expenseRatio =
+                    totalIncome > 0
+                        ? (totalExpense / totalIncome) * 100
+                        : 0;
+
+                const savingRatio =
+                    balance > 0 && totalIncome > 0
+                        ? (balance / totalIncome) * 100
+                        : 0;
+
+                const insights = [];
+
+                /* ---------- 1. Insight saldo ---------- */
+                if (balance > 0) {
+                    insights.push({
+                        type: "success",
+                        icon: "fa-circle-check",
+                        title: "Kondisi Keuangan Positif",
+                        message: `Saldo Anda saat ini positif sebesar ${Utils.formatRupiah(balance)}.`,
+                    });
+                } else if (balance === 0) {
+                    insights.push({
+                        type: "info",
+                        icon: "fa-scale-balanced",
+                        title: "Kondisi Keuangan Seimbang",
+                        message: "Total pemasukan dan pengeluaran Anda seimbang saat ini.",
+                    });
+                } else {
+                    insights.push({
+                        type: "danger",
+                        icon: "fa-triangle-exclamation",
+                        title: "Kondisi Keuangan Negatif",
+                        message: `Saldo Anda saat ini negatif sebesar ${Utils.formatRupiah(Math.abs(balance))}.`,
+                    });
+                }
+
+                /* ---------- 2 & 3. Kategori pengeluaran terbesar + persentase ---------- */
+                if (topCategoryName) {
+                    insights.push({
+                        type: "info",
+                        icon: "fa-chart-pie",
+                        title: "Kategori Pengeluaran Terbesar",
+                        message: `Pengeluaran terbesar Anda berasal dari kategori ${Utils.escapeHtml(topCategoryName)} sebesar ${Utils.formatRupiah(topCategoryAmount)}.`,
+                    });
+
+                    if (topCategoryPercentage >= 50) {
+                        insights.push({
+                            type: "warning",
+                            icon: "fa-triangle-exclamation",
+                            title: "Konsentrasi Pengeluaran Tinggi",
+                            message: `Kategori ${Utils.escapeHtml(topCategoryName)} menyumbang sekitar ${topCategoryPercentage.toFixed(0)}% dari total pengeluaran.`,
+                        });
+                    }
+                }
+
+                /* ---------- 4. Transaksi ---------- */
+                insights.push({
+                    type: "info",
+                    icon: "fa-receipt",
+                    title: "Ringkasan Transaksi",
+                    message: `Anda memiliki ${transactions.length} transaksi (${incomeCount} pemasukan, ${expenseCount} pengeluaran).`,
+                });
+
+                /* ---------- 5. Rasio pengeluaran terhadap pemasukan ---------- */
+                if (totalIncome > 0) {
+                    let ratioType = "success";
+                    let ratioTitle = "Rasio Pengeluaran Sangat Baik";
+                    let ratioMessage = `Rasio pengeluaran Anda terhadap pemasukan sekitar ${expenseRatio.toFixed(0)}%, tergolong sangat baik.`;
+
+                    if (expenseRatio > 100) {
+                        ratioType = "danger";
+                        ratioTitle = "Pengeluaran Melebihi Pemasukan";
+                        ratioMessage = `Pengeluaran Anda sekitar ${expenseRatio.toFixed(0)}% dari pemasukan, melebihi total pemasukan Anda.`;
+                    } else if (expenseRatio > 75) {
+                        ratioType = "warning";
+                        ratioTitle = "Rasio Pengeluaran Perlu Perhatian";
+                        ratioMessage = `Rasio pengeluaran Anda terhadap pemasukan sekitar ${expenseRatio.toFixed(0)}%, perlu perhatian lebih.`;
+                    } else if (expenseRatio > 50) {
+                        ratioType = "info";
+                        ratioTitle = "Rasio Pengeluaran Cukup Terkendali";
+                        ratioMessage = `Rasio pengeluaran Anda terhadap pemasukan sekitar ${expenseRatio.toFixed(0)}%, cukup terkendali.`;
+                    }
+
+                    insights.push({
+                        type: ratioType,
+                        icon: "fa-percent",
+                        title: ratioTitle,
+                        message: ratioMessage,
+                    });
+                }
+
+                /* ---------- 6. Insight tabungan / surplus ---------- */
+                if (balance > 0 && totalIncome > 0) {
+                    insights.push({
+                        type: "success",
+                        icon: "fa-piggy-bank",
+                        title: "Surplus Keuangan",
+                        message: `Surplus Anda sekitar ${savingRatio.toFixed(0)}% dari total pemasukan.`,
+                    });
+                }
+
+                return {
+                    hasData: true,
+
+                    summary: {
+                        totalIncome,
+                        totalExpense,
+                        balance,
+                        transactionCount: transactions.length,
+                    },
+
+                    topCategory: {
+                        name: topCategoryName,
+                        amount: topCategoryAmount,
+                        percentage: topCategoryPercentage,
+                    },
+
+                    expenseRatio,
+
+                    savingRatio,
+
+                    insights,
+                };
+            } catch (error) {
+                console.error("[InsightEngine.analyze]", error);
+                return this._emptyResult();
+            }
+        },
+
+    };
+
+
+    /* ==========================================================
        11. EXPORT ENGINE
        PDF / Excel / CSV
        ========================================================== */
