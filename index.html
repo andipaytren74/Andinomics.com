@@ -978,36 +978,141 @@
 
 
                     <h2 id="history-title">
-
-                        <i
-                            class="fa-solid fa-clock-rotate-left"
-                            aria-hidden="true">
-                        </i>
-
                         Riwayat Transaksi
-
                     </h2>
 
 
-                    <div class="search-box">
+                    <div class="history-tools">
 
-                        <i
-                            class="fa-solid fa-magnifying-glass"
-                            aria-hidden="true">
-                        </i>
 
-                        <label
-                            for="searchTransaction"
-                            class="visually-hidden">
+                        <!-- Search -->
 
-                            Cari transaksi
+                        <div class="search-box">
 
-                        </label>
+                            <i
+                                class="fa-solid fa-magnifying-glass"
+                                aria-hidden="true">
+                            </i>
 
-                        <input
-                            type="search"
-                            id="searchTransaction"
-                            placeholder="Cari transaksi...">
+                            <label
+                                for="searchTransaction"
+                                class="visually-hidden">
+
+                                Cari transaksi
+
+                            </label>
+
+                            <input
+                                type="search"
+                                id="searchTransaction"
+                                placeholder="Cari transaksi...">
+
+                        </div>
+
+
+                        <!-- Filter -->
+
+                        <div class="filter-box">
+
+                            <label
+                                for="filterType"
+                                class="visually-hidden">
+
+                                Filter jenis transaksi
+
+                            </label>
+
+                            <select
+                                id="filterType"
+                                aria-label="Filter jenis transaksi">
+
+                                <option value="all">
+                                    Semua Jenis
+                                </option>
+
+                                <option value="Pemasukan">
+                                    Pemasukan
+                                </option>
+
+                                <option value="Pengeluaran">
+                                    Pengeluaran
+                                </option>
+
+                            </select>
+
+
+                            <label
+                                for="filterCategory"
+                                class="visually-hidden">
+
+                                Filter kategori
+
+                            </label>
+
+                            <select
+                                id="filterCategory"
+                                aria-label="Filter kategori">
+
+                                <option value="all">
+                                    Semua Kategori
+                                </option>
+
+                                <option value="Gaji">
+                                    Gaji
+                                </option>
+
+                                <option value="Investasi">
+                                    Investasi
+                                </option>
+
+                                <option value="Makanan">
+                                    Makanan
+                                </option>
+
+                                <option value="Transportasi">
+                                    Transportasi
+                                </option>
+
+                                <option value="Belanja">
+                                    Belanja
+                                </option>
+
+                                <option value="Lainnya">
+                                    Lainnya
+                                </option>
+
+                            </select>
+
+
+                            <label
+                                for="filterDate"
+                                class="visually-hidden">
+
+                                Filter tanggal
+
+                            </label>
+
+                            <input
+                                type="date"
+                                id="filterDate"
+                                aria-label="Filter tanggal">
+
+                            <button
+                                type="button"
+                                id="resetFilters"
+                                class="filter-reset">
+
+                                <i
+                                    class="fa-solid fa-rotate-left"
+                                    aria-hidden="true">
+                                </i>
+
+                                Reset
+
+                            </button>
+
+                        </div>
+
 
                     </div>
 
